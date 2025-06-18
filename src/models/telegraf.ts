@@ -1,21 +1,21 @@
 import { Context, Scenes } from "telegraf";
 import { UserProfile } from "../models";
 
-interface WizardState {
+export interface WizardState {
   // available in scene ctx under `ctx.wizard.state.[key]`
-  profile: Partial<UserProfile>;
+  tempProfile: Partial<UserProfile>;
   currentMissingField: keyof UserProfile;
   tempData?: { [key: string]: any };
 }
 
-interface WizardSession extends Scenes.WizardSessionData {
+export interface WizardSession extends Scenes.WizardSessionData {
   // available in scene ctx under `ctx.scene.session.[key]`
   key: string; // Add any custom fields you want to use in wizard.state
 }
 
-interface BotSession extends Scenes.WizardSession<WizardSession> {
+export interface BotSession extends Scenes.WizardSession<WizardSession> {
   // will be available globally under `ctx.session.[key]`
-  key: number;
+  profile: UserProfile;
 }
 
 export interface BotContext extends Context {

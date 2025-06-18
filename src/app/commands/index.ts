@@ -1,16 +1,22 @@
-import { Composer } from "telegraf";
+import { Telegraf } from "telegraf";
+import { BotContext } from "../../models/telegraf";
 
-const composer = new Composer<any>();
+export default function registerCommands(bot: Telegraf<BotContext>) {
+  bot.command("start", async (ctx: BotContext) => {
+    const profile = ctx.session?.profile;
 
-composer.command("start", async (ctx: any) => {
-  const profile = ctx.manager.profile;
-  const username = profile.username;
+    let displayUsername = "there";
+    if (profile && profile.username) {
+      displayUsername = profile.username;
+    } else if (ctx.from?.first_name) {
+      displayUsername = ctx.from.first_name;
+    }
 
-  await ctx.reply(
-    `👋 Welcome, *${username}*\\!\n\n` +
-      `I'm here to help you stay organized with LinkedIn Account\\.\n\n`,
-    { parse_mode: "MarkdownV2" }
-  );
-});
-
-export default composer;
+    await ctx.reply(
+      `👋 Welcome, *${displayUsername}*\\!\n\n` +
+        `I'm here to help you stay organized with your LinkedIn Account\\.\n\n` +
+        `Use /setprofile to get started if you haven't already\\.`,
+      { parse_mode: "MarkdownV2" }
+    );
+  });
+}

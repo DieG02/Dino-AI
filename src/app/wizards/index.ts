@@ -1,12 +1,14 @@
-import { Composer, Scenes } from "telegraf";
+import { Telegraf, Scenes } from "telegraf";
 import { Wizard } from "../../config/constants";
-import setProfile from "./setprofile";
+import { BotContext } from "../../models/telegraf";
+import setProfileWizard from "./setprofile";
 
-const composer = new Composer<any>();
+const stage = new Scenes.Stage<BotContext>([setProfileWizard]);
 
-const stage = new Scenes.Stage<any>([setProfile]);
+export default function registerWizards(bot: Telegraf<BotContext>) {
+  bot.use(stage.middleware());
 
-composer.use(stage.middleware());
-composer.command("setprofile", (ctx) => ctx.scene.enter(Wizard.SET_PROFILE));
+  bot.command("setprofile", (ctx) => ctx.scene.enter(Wizard.SET_PROFILE));
+}
 
-export default composer;
+export { stage };

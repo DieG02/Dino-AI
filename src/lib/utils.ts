@@ -11,8 +11,8 @@ import { UserProfile } from "../models";
 export function mergeProfile(
   original: Partial<UserProfile>,
   updates: Partial<UserProfile>
-): Partial<UserProfile> {
-  const merged: Partial<any> = { ...original };
+): UserProfile {
+  const merged: any = { ...original };
 
   for (const key in updates) {
     const field = key as keyof UserProfile;

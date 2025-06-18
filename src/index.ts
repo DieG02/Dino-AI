@@ -1,35 +1,26 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { Telegraf, session } from "telegraf";
-import commandsManager from "./app/commands";
-import wizardsManager from "./app/wizards";
+import { Telegraf } from "telegraf";
 import { BotContext } from "./models/telegraf";
+
+import { setupBotApp } from "./app";
 
 // --- Environment Variables ---
 const RELEASE = process.env.MODE;
 const PORT = process.env.PORT;
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
+const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
-// Initialize bot with token from env
-export const bot = new Telegraf<BotContext>(TOKEN);
+// --- Initialize Bot Instance ---
+if (!TOKEN) {
+  console.error("TELEGRAM_BOT_TOKEN environment variable is not set!");
+  process.exit(1);
+}
+export const main = new Telegraf<BotContext>(TOKEN);
 
-// --- Session middleware ---
-bot.use(session());
-// bot.use(subscription);
-
-// --- Handle ALL Errors ---
-bot.catch((err: unknown, ctx: BotContext) => {
-  console.error(`Error for ${ctx.updateType}:`, err);
-  if (ctx.chat) {
-    ctx.reply("Oops, something went wrong!");
-  }
-});
-
-// --- Handlers Manager ---
-bot.use(commandsManager);
-bot.use(wizardsManager);
+// --- Setup Bot Application Logic ---
+setupBotApp(main);
 
 // --- Bot Startup ---
 (async () => {
@@ -43,15 +34,16 @@ bot.use(wizardsManager);
       );
       process.exit(1);
     }
+    const webhookPort = PORT ? parseInt(PORT) : 8080;
 
     try {
-      await bot.launch({
+      await main.launch({
         webhook: {
           domain: WEBHOOK_URL,
-          port: PORT ? parseInt(PORT) : 8080,
+          port: webhookPort,
         },
       });
-      console.log(`🚀 Webhook server listening on port ${PORT}`);
+      console.log(`🚀 Webhook server listening on port ${webhookPort}`);
       console.log(`Telegram webhook set to: ${WEBHOOK_URL}`);
       console.log("🤖 Bot is running in Webhook Mode.");
     } catch (error) {
@@ -61,8 +53,9 @@ bot.use(wizardsManager);
   } else {
     // --- DEVELOPMENT MODE (LONG POLLING) ---
     try {
-      await bot.launch();
+      await main.launch();
       console.log("🤖 Bot is running with long polling (development mode)");
+      console.log("Send /start to your bot in Telegram to test it.");
     } catch (error) {
       console.error("Error starting bot in long polling mode:", error);
       process.exit(1);
@@ -73,7 +66,7 @@ bot.use(wizardsManager);
 // --- Graceful Shutdown ---
 const shutdown = async (signal: string) => {
   console.log(`${signal} received, shutting down...`);
-  await bot.stop(signal); // Ensure bot stops gracefully
+  await main.stop(signal); // Ensure bot stops gracefully
   process.exit(0);
 };
 
