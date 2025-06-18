@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase-admin/firestore";
+
 // --- USER PROFILE ---
 export interface UserProfile {
   uid: string; // Telegram user id
@@ -11,14 +13,14 @@ export interface UserProfile {
   languages: string[]; // e.g. ["English", "Spanish"]
   country?: string;
   linkedinUrl?: string;
-  joinedAt: number; // timestamp
+  joinedAt: Timestamp;
 }
 
 // --- WEEKLY POST SUGGESTIONS ---
 export interface PostSuggestion {
   id: string;
   uid: string;
-  createdAt: number;
+  createdAt: Timestamp;
   promptUsed: string;
   content: string;
   tags: string[];
@@ -31,8 +33,8 @@ export interface UserPost {
   text: string;
   type: "insight" | "project" | "career" | "question";
   generatedWithAI?: boolean;
-  createdAt: number;
-  scheduledFor?: number; // optional future post
+  createdAt: Timestamp;
+  scheduledFor?: Timestamp;
 }
 
 // --- REMINDERS ---
@@ -40,8 +42,8 @@ export interface Reminder {
   id: string;
   uid: string;
   text: string;
-  time: number; // timestamp for sending
-  createdAt: number;
+  time: number;
+  createdAt: Timestamp;
 }
 
 // --- APPLICATION SUPPORT ---
@@ -52,7 +54,7 @@ export interface JobApplicationSupport {
   coverLetter: string;
   skillMatch: string;
   questionsToAsk: string[];
-  createdAt: number;
+  createdAt: Timestamp;
 }
 
 // --- MESSAGES SCOPE (For Analytics or Logs) ---
@@ -62,7 +64,7 @@ export interface BotMessageLog {
   messageType: "command" | "prompt" | "reply" | "error";
   messageText: string;
   commandName?: string;
-  createdAt: number;
+  createdAt: Timestamp;
 }
 
 // --- SYSTEM CONFIG (optional dynamic prompts, versions, etc) ---
@@ -70,5 +72,5 @@ export interface SystemConfig {
   id: string;
   key: string;
   value: string;
-  updatedAt: number;
+  updatedAt: Timestamp;
 }

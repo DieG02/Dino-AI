@@ -4,6 +4,7 @@ import { BotContext } from "../../models/telegraf";
 import { extract } from "../../services/openai";
 import { UserProfile } from "../../models";
 import { mergeProfile } from "../../lib/utils";
+import { store } from "../../store/";
 
 // Constants
 const saveOrCancelButtons = Markup.inlineKeyboard([
@@ -59,16 +60,16 @@ const setProfile = new Scenes.WizardScene<BotContext>(
     }
 
     const inputText = ctx.message.text;
-    ctx.wizard.state.profile ??= {};
+    ctx.wizard.state.tempProfile ??= ctx.session.profile;
 
     const extracted = await extract(inputText, Wizard.SET_PROFILE);
-    ctx.wizard.state.profile = mergeProfile(
-      ctx.wizard.state.profile,
+    ctx.wizard.state.tempProfile = mergeProfile(
+      ctx.wizard.state.tempProfile,
       extracted
     );
 
     const missingFields = coreFields.filter(
-      (field) => !ctx.wizard.state.profile[field]
+      (field) => !ctx.wizard.state.tempProfile[field]
     );
 
     if (missingFields.length > 0) {
@@ -76,7 +77,7 @@ const setProfile = new Scenes.WizardScene<BotContext>(
       return await replyMarkdown(ctx, promptMissingFields(missingFields));
     }
 
-    await replyMarkdown(ctx, formatProfile(ctx.wizard.state.profile));
+    await replyMarkdown(ctx, formatProfile(ctx.wizard.state.tempProfile));
     await ctx.reply(
       "☢️ Core Profile completed! Do you want to save it?",
       saveOrCancelButtons
@@ -98,7 +99,9 @@ const setProfile = new Scenes.WizardScene<BotContext>(
 
     switch (action) {
       case "save_profile":
-        await ctx.reply("✅ Profile saved! Use /myprofile to view.");
+        ctx.session.profile = ctx.wizard.state.tempProfile as UserProfile;
+        await store.upsertUser(ctx.session.profile.uid, ctx.session.profile);
+        await ctx.editMessageText("✅ Profile saved! Use /myprofile to view.");
         break;
       case "cancel_profile":
         await ctx.editMessageText("❌ Profile discarded");
