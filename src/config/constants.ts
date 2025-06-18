@@ -19,3 +19,7 @@ export enum Collection {
   MESSAGES = MESSAGES_COLLECTION,
   SYSTEM_CONFIG = SYSTEM_CONFIG_COLLECTION,
 }
+
+export enum Wizard {
+  SET_PROFILE = "set-profile-wizard",
+}

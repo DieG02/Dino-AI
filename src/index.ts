@@ -3,6 +3,8 @@ dotenv.config();
 
 import { Telegraf, session } from "telegraf";
 import commandsManager from "./app/commands";
+import wizardsManager from "./app/wizards";
+import { BotContext } from "./models/telegraf";
 
 // --- Environment Variables ---
 const RELEASE = process.env.MODE;
@@ -11,22 +13,23 @@ const TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
 // Initialize bot with token from env
-export const bot = new Telegraf<any>(TOKEN);
+export const bot = new Telegraf<BotContext>(TOKEN);
 
 // --- Session middleware ---
 bot.use(session());
 // bot.use(subscription);
 
 // --- Handle ALL Errors ---
-bot.catch((err: unknown, ctx: any) => {
+bot.catch((err: unknown, ctx: BotContext) => {
   console.error(`Error for ${ctx.updateType}:`, err);
   if (ctx.chat) {
     ctx.reply("Oops, something went wrong!");
   }
 });
 
-// --- Commands Manager ---
+// --- Handlers Manager ---
 bot.use(commandsManager);
+bot.use(wizardsManager);
 
 // --- Bot Startup ---
 (async () => {
