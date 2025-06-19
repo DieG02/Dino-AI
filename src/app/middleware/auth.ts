@@ -7,13 +7,11 @@ import { db } from "../../store";
 
 // This middleware will ensure ctx.session.profile is available
 // It will try to load it from Firestore if not already in session.
-export const profileMiddleware: MiddlewareFn<BotContext> = async (
+export const authMiddleware: MiddlewareFn<BotContext> = async (
   ctx: BotContext,
   next: () => Promise<void>
 ) => {
-  if (!ctx.from || !ctx.session) {
-    return next();
-  }
+  if (!ctx.from) throw new Error("No user context");
 
   const telegramId = String(ctx.from.id);
   const userDocRef = db.collection(Collection.USERS).doc(telegramId);
@@ -47,12 +45,26 @@ export const profileMiddleware: MiddlewareFn<BotContext> = async (
       }
     }
   } catch (error) {
+    console.error("Error loading or creating user profile:", error);
     await ctx.reply(
       "There was an issue loading or creating your profile. Please try again or use /setprofile."
     );
     ctx.session.profile = ctx.session.profile || ({} as UserProfile);
     return;
   }
-
   await next();
+};
+
+export const profileMiddleware: MiddlewareFn<BotContext> = async (
+  ctx: BotContext,
+  next: () => Promise<void>
+) => {
+  if (!ctx.session?.profile?.role) {
+    await ctx.reply(
+      "Please complete your profile using /setprofile before continuing."
+    );
+    return;
+  }
+
+  return next();
 };

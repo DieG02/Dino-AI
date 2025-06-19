@@ -1,20 +1,34 @@
 import { Telegraf, session } from "telegraf";
 import { BotContext } from "../models/telegraf";
-import { profileMiddleware } from "../app/middleware/auth";
+import { authMiddleware } from "../app/middleware/auth";
 
 import commandsHandler from "../app/commands";
 import wizardsHandler from "../app/wizards";
 
 export function setupBotApp(bot: Telegraf<BotContext>) {
-  bot.use(session());
-  bot.use(profileMiddleware);
+  bot.use(
+    session({
+      defaultSession: () => ({
+        profile: {} as BotContext["session"]["profile"],
+        wizard: { state: {} },
+      }),
+    })
+  );
+
+  // --- Middleware ---
+  bot.use(async (ctx, next) => {
+    try {
+      await authMiddleware(ctx, next);
+    } catch (err) {
+      console.error("Auth failed:", err);
+      await ctx.reply("Please authenticate first!");
+    }
+  });
 
   // --- Error Handling ---
-  bot.catch((err: unknown, ctx: BotContext) => {
+  bot.catch(async (err: unknown, ctx: BotContext) => {
     console.error(`Error for ${ctx.updateType}:`, err);
-    if (ctx.chat) {
-      ctx.reply("Oops, something went wrong!");
-    }
+    if (ctx.chat) await ctx.reply("Oops, something went wrong!");
   });
 
   // --- Handlers ---

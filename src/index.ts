@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import OpenAI from "openai";
 import { Telegraf } from "telegraf";
 import { BotContext } from "./models/telegraf";
 
@@ -9,15 +10,19 @@ import { setupBotApp } from "./app";
 // --- Environment Variables ---
 const RELEASE = process.env.MODE;
 const PORT = process.env.PORT;
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
+const OPENAI_TOKEN = process.env.OPENAI_API_KEY;
 
 // --- Initialize Bot Instance ---
-if (!TOKEN) {
-  console.error("TELEGRAM_BOT_TOKEN environment variable is not set!");
+if (!TELEGRAM_TOKEN || !OPENAI_TOKEN) {
+  console.error("Environment variables are not set!");
   process.exit(1);
 }
-export const main = new Telegraf<BotContext>(TOKEN);
+export const main = new Telegraf<BotContext>(TELEGRAM_TOKEN);
+export const openai = new OpenAI({
+  apiKey: OPENAI_TOKEN,
+});
 
 // --- Setup Bot Application Logic ---
 setupBotApp(main);

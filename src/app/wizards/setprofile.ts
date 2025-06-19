@@ -1,9 +1,10 @@
 import { Markup, Scenes } from "telegraf";
 import { Wizard } from "../../config/constants";
 import { BotContext } from "../../models/telegraf";
-import { extract } from "../../services/openai";
-import { UserProfile } from "../../models";
+import { extract } from "../../config/openai";
 import { mergeProfile } from "../../lib/utils";
+import { UserProfile } from "../../models";
+import { PromptContext, Service, ServicesMap } from "../../services";
 import { store } from "../../store/";
 
 // Constants
@@ -62,7 +63,17 @@ const setProfile = new Scenes.WizardScene<BotContext>(
     const inputText = ctx.message.text;
     ctx.wizard.state.tempProfile ??= ctx.session.profile;
 
-    const extracted = await extract(inputText, Wizard.SET_PROFILE);
+    // Retrieve the prompt string/function using the key
+    const { generate, schema } = ServicesMap[
+      Service.PROFILE_EXTRACTION
+    ] as PromptContext;
+
+    const extracted = await extract({
+      input: inputText,
+      system: generate(),
+      schema,
+    });
+
     ctx.wizard.state.tempProfile = mergeProfile(
       ctx.wizard.state.tempProfile,
       extracted

@@ -24,5 +24,6 @@ export interface BotContext extends Context {
   scene: Scenes.SceneContextScene<BotContext, WizardSession>;
   wizard: Scenes.WizardContextWizard<BotContext> & {
     state: WizardState;
+    current: number;
   };
 }
