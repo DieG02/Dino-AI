@@ -40,3 +40,32 @@ export function mergeProfile(
 
   return merged;
 }
+
+/**
+ * Parses Telegram command text into {command, topic}
+ * @example "/writepost new work" → {command: "writepost", topic: "new work"}
+ */
+export function parseCommand(fullText: string | undefined): {
+  success: boolean;
+  command?: string;
+  topic?: string;
+  error?: string;
+} {
+  if (!fullText) {
+    return { success: false, error: "No command text found" };
+  }
+
+  const parts = fullText.trim().split(/\s+/);
+  if (parts.length < 1 || !parts[0].startsWith("/")) {
+    return { success: false, error: "Invalid command format" };
+  }
+
+  const command = parts[0].slice(1);
+  const topic = parts.slice(1).join(" ").trim();
+
+  return {
+    success: true,
+    command,
+    topic: topic || undefined,
+  };
+}
