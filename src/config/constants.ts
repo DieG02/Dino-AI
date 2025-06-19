@@ -22,4 +22,5 @@ export enum Collection {
 
 export enum Wizard {
   SET_PROFILE = "set-profile-wizard",
+  WRITE_POST = "write-post-wizard",
 }

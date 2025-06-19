@@ -1,6 +1,14 @@
-import { getPrompt, Service } from "../services";
-import { zodTextFormat } from "openai/helpers/zod";
 import { openai } from "../index";
+import { ResponseCreateParamsWithTools } from "openai/lib/ResponsesParser";
+
+type OpenAIOptionalParams = Partial<ResponseCreateParamsWithTools>;
+
+interface ExtractHanlder {
+  input: string;
+  system: string;
+  schema: { type: "json_object" };
+  config?: OpenAIOptionalParams;
+}
 
 /**
  * Asynchronously extracts structured data from natural language input using OpenAI's library.
@@ -9,40 +17,29 @@ import { openai } from "../index";
  * @param key The context for extraction, guiding how the input is interpreted.
  * @returns A promise that resolves to a structured object containing the extracted data.
  */
-export const extract = async (input: string, key: Service): Promise<any> => {
+
+export const extract = async ({
+  input,
+  system,
+  schema,
+  config,
+}: ExtractHanlder): Promise<any> => {
   input = input.trim();
-
-  // Retrieve the prompt string/function using the key
-  const systemContent = getPrompt(key);
-  const { instructions, schema } = systemContent;
-
-  // const completion = await openai.chat.completions.create({
-  //   model: "gpt-4o-mini",
-  //   messages: [
-  //     { role: "system", content: instructions },
-  //     { role: "user", content: input },
-  //   ],
-  //   response_format: { type: "json_object" },
-  // });
-
-  // const rawContent = completion.choices[0].message.content;
 
   const rawContent = await openai.responses.parse({
     model: "gpt-4o-mini",
     input: [
-      { role: "system", content: instructions },
+      { role: "system", content: system },
       {
         role: "user",
         content: input,
       },
     ],
     text: {
-      format: zodTextFormat(schema, "profile"),
+      format: schema,
     },
+    ...(config ?? {}),
   });
-
-  const response = rawContent.output_parsed;
-  console.log("Raw content from OpenAI response:", response);
 
   if (rawContent) {
     try {
