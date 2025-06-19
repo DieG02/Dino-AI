@@ -1,4 +1,5 @@
 import { getPrompt, Service } from "../services";
+import { zodTextFormat } from "openai/helpers/zod";
 import { openai } from "../index";
 
 /**
@@ -12,24 +13,40 @@ export const extract = async (input: string, key: Service): Promise<any> => {
   input = input.trim();
 
   // Retrieve the prompt string/function using the key
-  const retrievedPrompt = getPrompt(key);
-  const systemContent =
-    typeof retrievedPrompt === "function" ? retrievedPrompt() : retrievedPrompt;
+  const systemContent = getPrompt(key);
+  const { instructions, schema } = systemContent;
 
-  const completion = await openai.chat.completions.create({
+  // const completion = await openai.chat.completions.create({
+  //   model: "gpt-4o-mini",
+  //   messages: [
+  //     { role: "system", content: instructions },
+  //     { role: "user", content: input },
+  //   ],
+  //   response_format: { type: "json_object" },
+  // });
+
+  // const rawContent = completion.choices[0].message.content;
+
+  const rawContent = await openai.responses.parse({
     model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: systemContent },
-      { role: "user", content: input },
+    input: [
+      { role: "system", content: instructions },
+      {
+        role: "user",
+        content: input,
+      },
     ],
-    response_format: { type: "json_object" },
+    text: {
+      format: zodTextFormat(schema, "profile"),
+    },
   });
 
-  const rawContent = completion.choices[0].message.content;
+  const response = rawContent.output_parsed;
+  console.log("Raw content from OpenAI response:", response);
 
   if (rawContent) {
     try {
-      return JSON.parse(rawContent);
+      return rawContent.output_parsed;
     } catch (e) {
       console.error(
         "Failed to parse JSON from OpenAI response:",
