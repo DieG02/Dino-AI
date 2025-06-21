@@ -1,5 +1,12 @@
 import { Timestamp } from "firebase-admin/firestore";
 
+export type ExperienceType =
+  | "work"
+  | "project"
+  | "education"
+  | "volunteering"
+  | "other";
+
 // --- USER PROFILE ---
 export interface UserProfile {
   uid: string; // Telegram user id
@@ -11,9 +18,22 @@ export interface UserProfile {
   goal: string; // e.g. "Find a remote job in EU"
   techStack: string[]; // e.g. ["React", "Node.js", "TypeScript"]
   languages: string[]; // e.g. ["English", "Spanish"]
+  experience: UserExperience[]; // Array of past roles/projects
   country?: string;
   linkedinUrl?: string;
   joinedAt: Timestamp;
+}
+
+// --- WEEKLY POST SUGGESTIONS ---
+export interface UserExperience {
+  role: string;
+  company: string;
+  start?: Timestamp;
+  end?: Timestamp | null;
+  description?: string;
+  skills?: string[];
+  type: ExperienceType;
+  location?: string;
 }
 
 // --- WEEKLY POST SUGGESTIONS ---
