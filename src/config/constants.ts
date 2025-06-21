@@ -4,7 +4,7 @@ export const BOT_NAME = "Dino AI";
 // --- FIRESTORE ---
 export const USERS_COLLECTION = "users";
 export const REMINDERS_COLLECTION = "reminders";
-export const POST_SUGGESTIONS_COLLECTION = "postSuggestions";
+export const POST_SUGGESTIONS_COLLECTION = "suggestions";
 export const POSTS_COLLECTION = "posts";
 export const APPLICATIONS_COLLECTION = "applications";
 export const MESSAGES_COLLECTION = "messages";
@@ -23,4 +23,5 @@ export enum Collection {
 export enum Wizard {
   SET_PROFILE = "set-profile-wizard",
   WRITE_POST = "write-post-wizard",
+  WEEKLY_IDEAS = "weekly-ideas-wizard",
 }
