@@ -6,11 +6,13 @@ import { profileMiddleware } from "../middleware/auth";
 import setProfileWizard from "./setprofile";
 import writePostWizard from "./writepost";
 import weeklyIdeasWizard from "./weeklyideas";
+import applyToWizard from "./applyto";
 
 const stage = new Scenes.Stage<BotContext>([
   setProfileWizard,
   writePostWizard,
   weeklyIdeasWizard,
+  applyToWizard,
 ]);
 
 export default function registerWizards(bot: Telegraf<BotContext>) {
@@ -22,6 +24,9 @@ export default function registerWizards(bot: Telegraf<BotContext>) {
   );
   bot.command("weeklyideas", profileMiddleware, (ctx) =>
     ctx.scene.enter(Wizard.WEEKLY_IDEAS)
+  );
+  bot.command("applyto", profileMiddleware, (ctx) =>
+    ctx.scene.enter(Wizard.APPLY_TO)
   );
 }
 

@@ -44,7 +44,7 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
       }
     );
 
-    ctx.wizard.state.tempData! = {
+    ctx.wizard.state.tempData = {
       input: "",
       ideas: [],
       messageIds: [],
