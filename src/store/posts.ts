@@ -1,9 +1,10 @@
 import { Timestamp } from "firebase-admin/firestore";
 import { UserPost } from "../models";
 import { db } from "./index";
+import { POSTS_COLLECTION, USERS_COLLECTION } from "../config/constants";
 
 const postsCollection = (userId: string) =>
-  db.collection("users").doc(userId).collection("posts");
+  db.collection(USERS_COLLECTION).doc(userId).collection(POSTS_COLLECTION);
 
 export const PostManager = {
   /**

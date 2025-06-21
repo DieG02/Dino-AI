@@ -16,7 +16,7 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
       `👋 Welcome, *${displayUsername}*\\!\n\n` +
         `I'm here to help you stay organized with your LinkedIn Account\\.\n\n` +
         `Use /setprofile to get started if you haven't already\\.`,
-      { parse_mode: "MarkdownV2" }
+      { parse_mode: "Markdown" }
     );
   });
 }
