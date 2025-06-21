@@ -24,4 +24,5 @@ export enum Wizard {
   SET_PROFILE = "set-profile-wizard",
   WRITE_POST = "write-post-wizard",
   WEEKLY_IDEAS = "weekly-ideas-wizard",
+  APPLY_TO = "apply-to-wizard",
 }
