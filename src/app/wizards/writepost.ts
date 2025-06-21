@@ -3,10 +3,7 @@ import { Wizard } from "../../config/constants";
 import { BotContext } from "../../models/telegraf";
 import { extract } from "../../config/openai";
 import { parseCommand } from "../../lib/utils";
-import { UserProfile } from "../../models";
 import { PromptContext, Service, ServicesMap } from "../../services";
-import { store } from "../../store/";
-import { openai } from "../..";
 import { PostManager } from "../../store/posts";
 
 async function displayPost(ctx: BotContext) {
@@ -43,14 +40,20 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
   async (ctx: BotContext) => {
     if (!ctx.message || !("text" in ctx.message))
       return await ctx.reply("❌ Please send a text message");
-    console.log("Received message in writePostWizard:", ctx.message.text);
 
-    const { topic } = parseCommand(ctx.message?.text);
+    let { topic } = parseCommand(ctx.message?.text);
     if (!topic) {
-      await ctx.reply(
-        "Please provide a topic after the /writepost command (e.g., /writepost my new project)."
-      );
-      return ctx.scene.leave();
+      const tempDraft = ctx.session.tempDraft?.[Wizard.WEEKLY_IDEAS];
+      if (tempDraft && tempDraft.content) {
+        await ctx.reply(`📋 Using your saved draft:\n\n_${tempDraft.content}_`);
+        topic = tempDraft.content;
+      } else {
+        // By default we don't want to let user use \writepost only [reservated for draft data]
+        await ctx.reply(
+          "Please provide a topic after the `/writepost` command (e.g., _`/writepost` my new project_)."
+        );
+        return ctx.scene.leave();
+      }
     }
 
     await ctx.reply(
@@ -67,13 +70,17 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
         ] as PromptContext;
 
         const extracted = await extract({
-          input: topic,
+          input: topic!,
           system: create(ctx.session.profile),
           schema,
         });
 
         console.log("Generated post content:", extracted);
-        if (extracted) posts.push(extracted);
+        if (extracted) {
+          posts.push(extracted);
+          // --- Clear draft ---
+          delete ctx.session.tempDraft![Wizard.WEEKLY_IDEAS];
+        }
       }
 
       if (posts.length === 0) {
