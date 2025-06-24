@@ -2,6 +2,7 @@ import { ProfileExtractor } from "./extract-profile";
 import { PostGenerator } from "./generate-post";
 import { IdeasGenerator } from "./generate-ideas";
 import { ApplyJobExtractor } from "./extract-application";
+import { ReferralGenerator } from "./generate-referral";
 // import welcomeMessage from "./system-welcome-message";
 
 export enum Service {
@@ -9,6 +10,8 @@ export enum Service {
   LINKEDIN_POST_GENERATION = "LINKEDIN_POST_GENERATION",
   WEEKLY_IDEAS_GENERATION = "WEEKLY_IDEAS_GENERATION",
   APPLY_TO_JOB_EXTRACTION = "APPLY_TO_JOB_EXTRACTION",
+  REFERRAL_GENERATION = "REFERRAL_GENERATION",
+  // Add other services here as needed
 }
 
 export type PromptContext = {
@@ -23,5 +26,6 @@ export const ServicesMap: Record<Service, Partial<PromptContext>> = {
   [Service.LINKEDIN_POST_GENERATION]: PostGenerator,
   [Service.WEEKLY_IDEAS_GENERATION]: IdeasGenerator,
   [Service.APPLY_TO_JOB_EXTRACTION]: ApplyJobExtractor,
+  [Service.REFERRAL_GENERATION]: ReferralGenerator,
   // ... map other prompts here
 };

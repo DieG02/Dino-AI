@@ -127,6 +127,7 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
 
           // Store in session with timestamp
           ctx.session.tempDraft = {
+            ...ctx.session.tempDraft,
             [Wizard.WEEKLY_IDEAS]: {
               content: idea.content,
               type: idea.type,
