@@ -7,12 +7,14 @@ import setProfileWizard from "./setprofile";
 import writePostWizard from "./writepost";
 import weeklyIdeasWizard from "./weeklyideas";
 import applyToWizard from "./applyto";
+import referralWizard from "./referral";
 
 const stage = new Scenes.Stage<BotContext>([
   setProfileWizard,
   writePostWizard,
   weeklyIdeasWizard,
   applyToWizard,
+  referralWizard,
 ]);
 
 export default function registerWizards(bot: Telegraf<BotContext>) {
@@ -27,6 +29,9 @@ export default function registerWizards(bot: Telegraf<BotContext>) {
   );
   bot.command("applyto", profileMiddleware, (ctx) =>
     ctx.scene.enter(Wizard.APPLY_TO)
+  );
+  bot.command("referral", profileMiddleware, (ctx) =>
+    ctx.scene.enter(Wizard.REFERRAL)
   );
 }
 
