@@ -1,3 +1,4 @@
+import { main } from "../index";
 import { UserProfile } from "../models";
 
 /**
@@ -68,4 +69,32 @@ export function parseCommand(fullText: string | undefined): {
     command,
     topic: topic || undefined,
   };
+}
+
+interface Datetime {
+  stringFormat: string;
+  dateFormat: Date;
+}
+export function parseDatetime(date: string, time: string): Datetime {
+  // Assuming format: date = 'DD/MM/YYYY', time = 'HH:mm'
+  const [day, month, year] = date.split("/").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+
+  // JS Date: months are 0-indexed (0 = Jan)
+  const jsDate = new Date(year, month - 1, day, hour, minute);
+
+  // Store as ISO string
+  const isoString = jsDate.toISOString(); // e.g., '2025-06-24T18:26:00.000Z'
+  return { stringFormat: isoString, dateFormat: jsDate };
+}
+
+export async function sendMessageToUser(chatId: number, message: string) {
+  try {
+    await main.telegram.sendMessage(chatId, message, {
+      parse_mode: "Markdown",
+    });
+    console.log(`✅ Message sent to ${chatId}: ${message}`);
+  } catch (error) {
+    console.error(`❌ Failed to send message to ${chatId}`, error);
+  }
 }

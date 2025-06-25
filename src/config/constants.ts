@@ -26,4 +26,5 @@ export enum Wizard {
   WEEKLY_IDEAS = "weekly-ideas-wizard",
   APPLY_TO = "apply-to-wizard",
   REFERRAL = "referral-wizard",
+  FOLLOW_UP = "follow-up-wizard",
 }
