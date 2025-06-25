@@ -4,6 +4,7 @@ import { authMiddleware } from "../app/middleware/auth";
 
 import commandsHandler from "../app/commands";
 import wizardsHandler from "../app/wizards";
+import { restoreReminders } from "../config/cron";
 
 export function setupBotApp(bot: Telegraf<BotContext>) {
   bot.use(
@@ -35,4 +36,7 @@ export function setupBotApp(bot: Telegraf<BotContext>) {
   // --- Handlers ---
   commandsHandler(bot);
   wizardsHandler(bot);
+
+  // --- Setup CronJob ---
+  restoreReminders();
 }
