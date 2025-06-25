@@ -60,9 +60,10 @@ export interface UserPost {
 // --- REMINDERS ---
 export interface Reminder {
   id: string;
-  uid: string;
-  text: string;
-  time: number;
+  chatId: string;
+  task: string;
+  datetime: Date;
+  contact: string;
   createdAt: Timestamp;
 }
 
