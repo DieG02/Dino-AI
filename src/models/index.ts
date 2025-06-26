@@ -10,7 +10,7 @@ export type ExperienceType =
 // --- USER PROFILE ---
 export interface UserProfile {
   uid: string; // Telegram user id
-  username?: string;
+  username: string;
   firstName?: string;
   lastName?: string;
   role: string; // e.g. "Frontend Developer"
@@ -26,6 +26,7 @@ export interface UserProfile {
 
 // --- USER EXPERIENCE ---
 export interface UserExperience {
+  id: string;
   role: string;
   company: string;
   start?: Timestamp;
