@@ -38,7 +38,7 @@ export const authMiddleware: MiddlewareFn<BotContext> = async (
           goal: "",
           techStack: [],
           languages: [],
-          experience: [],
+          experiences: [],
           joinedAt: Timestamp.now(),
         };
         await userDocRef.set(newUser, { merge: true });

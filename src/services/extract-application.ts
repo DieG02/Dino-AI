@@ -27,9 +27,9 @@ const jobApplySchema = z.object({
 const schema = zodTextFormat(jobApplySchema, "JobApplicationResponse");
 
 const instructions = (profile: UserProfile): string => {
-  const hasExperience = profile.experience && profile.experience.length > 0;
+  const hasExperience = profile.experiences && profile.experiences.length > 0;
   const experiencesText = hasExperience
-    ? profile.experience
+    ? profile.experiences
         .map(
           (exp) => `
 - Role: ${exp.role}
@@ -70,7 +70,7 @@ Your cover letter must be tailored to this specific job. Only include skills if 
 
 The summary must explain which skills match, and where there might be gaps (e.g., 'User lacks direct experience in Kubernetes but has worked with Docker').
 This summary must directly address the user using "you" and "your".
-End that section with an approximate match percentage (high priority to the seniority, take it from experience field attached).
+End that section with an approximate match percentage (high priority to the seniority, take it from experiences field attached).
 
 Interview questions should reflect the job responsibilities and technical expectations in the description.
 

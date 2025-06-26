@@ -19,7 +19,7 @@ const getJobDescription = (): string => {
     - title: Job title (if not found, default to "[job_title]")
     - company: Company name (if not found, default to "[company_name]")
     - skills: Array of required skills
-    - experience: Required years/level (e.g., "3+ years", "Mid-level", "Senior")
+    - experiences: Required years/level (e.g., "3+ years", "Mid-level", "Senior")
     - stack: Technologies mentioned (e.g., ["Node.js", "React", "AWS Lambda"])
     
     Return the extracted information as a JSON object.
