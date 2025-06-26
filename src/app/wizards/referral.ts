@@ -49,7 +49,7 @@ export const referralWizard = new Scenes.WizardScene<BotContext>(
         title: z.string(),
         company: z.string(),
         skills: z.array(z.string()),
-        experience: z.string(),
+        experiences: z.string(),
         stack: z.array(z.string()),
       });
 

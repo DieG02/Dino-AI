@@ -18,13 +18,13 @@ export interface UserProfile {
   goal: string; // e.g. "Find a remote job in EU"
   techStack: string[]; // e.g. ["React", "Node.js", "TypeScript"]
   languages: string[]; // e.g. ["English", "Spanish"]
-  experience: UserExperience[]; // Array of past roles/projects
+  experiences: UserExperience[]; // Array of past roles/projects
   country?: string;
   linkedinUrl?: string;
   joinedAt: Timestamp;
 }
 
-// --- WEEKLY POST SUGGESTIONS ---
+// --- USER EXPERIENCE ---
 export interface UserExperience {
   role: string;
   company: string;

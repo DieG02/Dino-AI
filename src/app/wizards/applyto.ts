@@ -3,7 +3,6 @@ import { Wizard } from "../../config/constants";
 import { BotContext } from "../../models/telegraf";
 import { UserExperience } from "../../models";
 import { extract } from "../../config/openai";
-import { z } from "zod";
 import { PromptContext, Service, ServicesMap } from "../../services";
 
 interface JobApplicationState {
