@@ -1,4 +1,5 @@
 import { ProfileExtractor } from "./extract-profile";
+import { ExperienceExtractor } from "./extract-experience";
 import { PostGenerator } from "./generate-post";
 import { IdeasGenerator } from "./generate-ideas";
 import { ApplyJobExtractor } from "./extract-application";
@@ -8,6 +9,7 @@ import { FollowUpExtractor } from "./extract-followup";
 
 export enum Service {
   PROFILE_EXTRACTION = "PROFILE_EXTRACTION",
+  EXPERIENCE_EXTRACTION = "EXPERIENCE_EXTRACTION",
   LINKEDIN_POST_GENERATION = "LINKEDIN_POST_GENERATION",
   WEEKLY_IDEAS_GENERATION = "WEEKLY_IDEAS_GENERATION",
   APPLY_TO_JOB_EXTRACTION = "APPLY_TO_JOB_EXTRACTION",
@@ -25,6 +27,7 @@ export type PromptContext = {
 
 export const ServicesMap: Record<Service, Partial<PromptContext>> = {
   [Service.PROFILE_EXTRACTION]: ProfileExtractor,
+  [Service.EXPERIENCE_EXTRACTION]: ExperienceExtractor,
   [Service.LINKEDIN_POST_GENERATION]: PostGenerator,
   [Service.WEEKLY_IDEAS_GENERATION]: IdeasGenerator,
   [Service.APPLY_TO_JOB_EXTRACTION]: ApplyJobExtractor,

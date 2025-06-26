@@ -1,5 +1,5 @@
 import { main } from "../index";
-import { UserProfile } from "../models";
+import { ExperienceType, UserExperience, UserProfile } from "../models";
 
 /**
  * Merges two partial UserProfile objects into one, applying optional logic for arrays and empty values.
@@ -98,3 +98,45 @@ export async function sendMessageToUser(chatId: number, message: string) {
     console.error(`❌ Failed to send message to ${chatId}`, error);
   }
 }
+
+export const getExperienceTemplate = (
+  type: ExperienceType,
+  experience: UserExperience
+): string => {
+  const { role, company, start, end, description, skills, location } =
+    experience;
+
+  const dateLabel =
+    start && !end
+      ? `🗓️ Since ${start}`
+      : start && end
+      ? `🗓️ ${start} – ${end}`
+      : "Present";
+
+  const period = dateLabel ? dateLabel + "\n" : "";
+  const locationLine =
+    location && (type === "education" || type === "volunteering")
+      ? `📍 ${location}\n`
+      : "";
+
+  const skillsLine = skills?.length ? `\n🧠 Skills: ${skills.join(", ")}` : "";
+
+  switch (type) {
+    case "work":
+      return `💼 *${role} at ${company}*\n${period}📝 ${description}${skillsLine}`;
+
+    case "education":
+      return `🎓 *${role} at ${company}*\n${locationLine}${period}📚 ${description}`;
+
+    case "volunteering":
+      return `🤝 *${role} at ${company}*\n${locationLine}${period}🌍 ${description}`;
+
+    case "project":
+      return `🛠️ *${role} – ${company}*\n${period}📌 ${description}${skillsLine}`;
+
+    default:
+      return `✨ *${role} at ${company}*\n${period}${
+        description ? `📄 ${description}` : ""
+      }`;
+  }
+};
