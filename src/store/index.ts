@@ -1,11 +1,10 @@
 import * as admin from "firebase-admin";
-import * as user from "./user";
 
 // --- Firebase Initialization ---
 
 if (!admin.apps.length) {
   const serviceAccountJson = Buffer.from(
-    process.env.GOOGLE_SERVICES_BASE64!,
+    process.env.GOOGLE_SERVICES_BASE64_DEV!,
     "base64"
   ).toString("utf8");
 
@@ -16,7 +15,3 @@ if (!admin.apps.length) {
   });
 }
 export const db = admin.firestore();
-
-export const store = {
-  upsertUser: user.upsert,
-};

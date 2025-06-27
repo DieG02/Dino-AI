@@ -1,6 +1,8 @@
 import { Context, Scenes } from "telegraf";
 import { UserProfile } from "../models";
 import { Wizard } from "../config/constants";
+import { ProfileManager } from "./profile";
+import { ExperienceManager } from "./experience";
 
 export interface WizardState {
   // available in scene ctx under `ctx.wizard.state.[key]`
@@ -16,7 +18,8 @@ export interface WizardSession extends Scenes.WizardSessionData {
 
 export interface BotSession extends Scenes.WizardSession<WizardSession> {
   // will be available globally under `ctx.session.[key]`
-  profile: UserProfile;
+  profile: ProfileManager;
+  experience: ExperienceManager;
   draft: Partial<Record<Wizard, any>>;
 }
 

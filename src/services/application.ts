@@ -1,5 +1,5 @@
 import { zodTextFormat } from "openai/helpers/zod";
-import { UserProfile } from "../models";
+import { UserExperience, UserProfile } from "../models";
 import { Features } from "./index";
 import { z } from "zod";
 
@@ -26,11 +26,14 @@ const zodInterface = z.object({
 
 const schema = zodTextFormat(zodInterface, "JobApplicationResponse");
 
-export const instructions = (profile: UserProfile): string => {
-  const hasExperience = profile.experiences && profile.experiences.length > 0;
+export const instructions = (
+  profile: UserProfile,
+  experiences: UserExperience[]
+): string => {
+  const hasExperience = experiences.length > 0;
 
   const experiencesText = hasExperience
-    ? profile.experiences
+    ? experiences
         .map(
           (exp) => `
             - Role: ${exp.role}

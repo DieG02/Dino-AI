@@ -106,7 +106,7 @@ export const referralWizard = new Scenes.WizardScene<BotContext>(
       { parse_mode: "Markdown" }
     );
 
-    const { profile } = ctx.session;
+    const profile = ctx.session.profile.me;
     const { referralType, selectedExperience, jd } = ctx.wizard.state.data!;
 
     const update = await ctx.reply("✍️ Generating your message...");
@@ -115,19 +115,14 @@ export const referralWizard = new Scenes.WizardScene<BotContext>(
 
     const result = await extract({
       input: "",
-      system: create(
-        referralType,
-        profile as UserProfile,
-        jd,
-        selectedExperience
-      ),
+      system: create(referralType, profile, jd, selectedExperience),
       schema,
     });
 
     ctx.wizard.state.data!.generatedMessage = result.text;
 
     await ctx.telegram.editMessageText(
-      ctx.session.profile.uid,
+      profile.uid,
       update.message_id,
       undefined,
       `✅ Here's your generated DM:\n\n\`${result.text}\``,

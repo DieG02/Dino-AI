@@ -1,16 +1,20 @@
 import { Telegraf, session } from "telegraf";
 import { BotContext } from "../models/telegraf";
 import { authMiddleware } from "../app/middleware/auth";
+import { experienceMiddleware } from "./middleware/experience";
 
 import commandsHandler from "../app/commands";
 import wizardsHandler from "../app/wizards";
 import { restoreReminders } from "../config/cron";
+import { ProfileManager } from "../models/profile";
+import { ExperienceManager } from "../models/experience";
 
 export function setupBotApp(bot: Telegraf<BotContext>) {
   bot.use(
     session({
       defaultSession: () => ({
-        profile: {} as BotContext["session"]["profile"],
+        profile: {} as ProfileManager,
+        experience: {} as ExperienceManager,
         wizard: { state: {} },
         draft: {},
       }),
@@ -18,14 +22,8 @@ export function setupBotApp(bot: Telegraf<BotContext>) {
   );
 
   // --- Middleware ---
-  bot.use(async (ctx, next) => {
-    try {
-      await authMiddleware(ctx, next);
-    } catch (err) {
-      console.error("Auth failed:", err);
-      await ctx.reply("Please authenticate first!");
-    }
-  });
+  bot.use(authMiddleware);
+  bot.use(experienceMiddleware);
 
   // --- Error Handling ---
   bot.catch(async (err: unknown, ctx: BotContext) => {

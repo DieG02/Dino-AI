@@ -44,7 +44,9 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
     if (!topic) {
       const draft = ctx.session.draft?.[Wizard.WEEKLY_IDEAS];
       if (draft && draft.content) {
-        await ctx.reply(`📋 Using your saved draft:\n\n_${draft.content}_`);
+        await ctx.reply(`📋 Using your saved draft:\n\n_${draft.content}_`, {
+          parse_mode: "Markdown",
+        });
         topic = draft.content;
       } else {
         // By default we don't want to let user use \writepost only [reservated for draft data]
@@ -71,7 +73,7 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
 
         const extracted = await extract({
           input: topic!,
-          system: create(ctx.session.profile),
+          system: create(ctx.session.profile.me),
           schema,
         });
 
@@ -119,14 +121,17 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
             ];
           await ctx.answerCbQuery();
           await ctx.telegram.editMessageText(
-            ctx.session.profile.uid,
+            ctx.session.profile.me.uid,
             ctx.wizard.state.data.messageId,
             undefined,
             `\`${confirmedPost.text}\``,
             { parse_mode: "Markdown" }
           );
           await ctx.reply(`🎉 Great! It's ready to be copied to LinkedIn!`);
-          await PostManager.createPost(ctx.session.profile.uid, confirmedPost);
+          await PostManager.createPost(
+            ctx.session.profile.me.uid,
+            confirmedPost
+          );
           return ctx.scene.leave();
 
         case "writepost_next":

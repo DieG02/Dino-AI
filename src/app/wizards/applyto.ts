@@ -36,6 +36,7 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
     }
 
     const input = ctx.message.text;
+    const profile = ctx.session.profile.me;
     ctx.wizard.state.data.application = {
       jobDescription: input,
     } as JobApplicationState;
@@ -49,33 +50,30 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
     );
     const jd_summary = await extract({
       input: input,
-      system: generate_jd(ctx.session.profile),
+      system: generate_jd(profile),
       schema: schema_jd,
     });
 
     await ctx.telegram.editMessageText(
-      ctx.session.profile.uid,
+      profile.uid,
       status.message_id,
       undefined,
       "Information extracted successfully. Analysing your profile..."
     );
 
     const { generate, schema } = ServicesMap[Service.APPLY_TO] as Features;
-    console.log(generate(ctx.session.profile));
     const extracted = await extract({
       input: JSON.stringify(jd_summary),
-      system: generate(ctx.session.profile),
+      system: generate(profile, ctx.session.experience.all),
       schema,
     });
 
     await ctx.telegram.editMessageText(
-      ctx.session.profile.uid,
+      profile.uid,
       status.message_id,
       undefined,
       "Analysis completed!"
     );
-
-    console.log(extracted, jd_summary);
 
     ctx.wizard.state.data.application = extracted;
     await ctx.reply(
@@ -109,7 +107,7 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
     const action = ctx.callbackQuery.data;
     const { application } = ctx.wizard.state.data!;
     const messageId = ctx.wizard.state.data!.messageId;
-    const chatId = ctx.session.profile.uid;
+    const chatId = ctx.session.profile.me.uid;
 
     switch (true) {
       case action === "show_skills":

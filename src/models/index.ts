@@ -18,7 +18,6 @@ export interface UserProfile {
   goal: string; // e.g. "Find a remote job in EU"
   techStack: string[]; // e.g. ["React", "Node.js", "TypeScript"]
   languages: string[]; // e.g. ["English", "Spanish"]
-  experiences: UserExperience[]; // Array of past roles/projects
   country?: string;
   linkedinUrl?: string;
   joinedAt: Timestamp;
@@ -40,7 +39,6 @@ export interface UserExperience {
 // --- WEEKLY POST SUGGESTIONS ---
 export interface PostSuggestion {
   id: string;
-  uid: string;
   createdAt: Timestamp;
   promptUsed: string;
   content: string;
@@ -71,7 +69,6 @@ export interface Reminder {
 // --- APPLICATION SUPPORT ---
 export interface JobApplicationSupport {
   id: string;
-  uid: string;
   jobDescription: string;
   coverLetter: string;
   skillMatch: string;

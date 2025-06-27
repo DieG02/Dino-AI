@@ -30,7 +30,7 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
   // Step 1 - Interactive prompt with examples
   async (ctx) => {
     await ctx.reply(
-      "✨ *Let's create viral LinkedIn content together\\!* ✨\n\n" +
+      "✨ *Let's create viral LinkedIn content together!* ✨\n\n" +
         "Tell me about:\n" +
         "• Your target audience\n" +
         "• Key message\n" +
@@ -75,7 +75,7 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
       const { create, schema } = ServicesMap[Service.WEEKLY_IDEAS] as Features;
       const { ideas } = await extract({
         input: ctx.message.text,
-        system: create(ctx.session.profile),
+        system: create(ctx.session.profile.me),
         schema,
       });
 
@@ -152,7 +152,7 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
           );
           await Promise.all(
             ideas.map((idea: PostSuggestion) =>
-              SuggestionsManager.add(ctx.session.profile.uid, idea)
+              SuggestionsManager.add(ctx.session.profile.me.uid, idea)
             )
           );
           break;

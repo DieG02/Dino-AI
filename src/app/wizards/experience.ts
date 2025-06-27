@@ -92,10 +92,10 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       return;
     }
     const action = ctx.callbackQuery.data;
-    const experience = ctx.wizard.state.data!.experience;
+    const experience: UserExperience = ctx.wizard.state.data!.experience;
 
     if (action === "save") {
-      await addExperience(ctx.session.profile.uid, experience);
+      await ctx.session.experience.add(experience);
       console.log(experience);
       await ctx.editMessageText(
         "Experience saved! You can check your updates in your profile with /myprofile"

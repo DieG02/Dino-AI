@@ -17,7 +17,7 @@ const followupWizard = new Scenes.WizardScene<BotContext>(
     const { topic } = parseCommand(text);
 
     if (!topic) {
-      const allReminders = await getReminders(ctx.session.profile.uid);
+      const allReminders = await getReminders(ctx.session.profile.me.uid);
 
       const myReminders = allReminders
         .map(
@@ -100,7 +100,7 @@ const followupWizard = new Scenes.WizardScene<BotContext>(
       const { task, date, time, contact } = ctx.wizard.state.data!;
       await addReminder({
         datetime: parseDatetime(date, time).dateFormat,
-        chatId: ctx.session.profile.uid,
+        chatId: ctx.session.profile.me.uid,
         task,
         contact,
       });

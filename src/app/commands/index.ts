@@ -8,7 +8,8 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
   bot.command("reset", async (ctx) => {
     // Clear the entire session for the current user
     ctx.session = {
-      profile: ctx.session?.profile,
+      profile: ctx.session.profile,
+      experience: ctx.session.experience,
       draft: {},
     };
 
@@ -22,7 +23,7 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
   });
 
   bot.command("start", async (ctx: BotContext) => {
-    const profile = ctx.session?.profile;
+    const profile = ctx.session?.profile.me;
 
     let displayUsername = "there";
     if (profile && profile.username) {
@@ -32,25 +33,20 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
     }
 
     await ctx.reply(
-      `👋 Welcome, *${displayUsername}*\\!\n\n` +
-        `I'm here to help you stay organized with your LinkedIn Account\\.\n\n` +
-        `Use /setprofile to get started if you haven't already\\.`,
+      `👋 Welcome, *${displayUsername}*!\n\n` +
+        `I'm here to help you stay organized with your LinkedIn Account.\n\n` +
+        `Use /setprofile to get started if you haven't already.`,
       { parse_mode: "Markdown" }
     );
   });
 
   bot.command("myprofile", async (ctx) => {
-    const { id, profile, experiences } = await getProfile(
-      ctx.session.profile.uid
-    );
-    const fullName =
-      profile.firstName && profile.lastName
-        ? `${profile.firstName} ${profile.lastName}`
-        : "";
+    const profile = ctx.session.profile.me;
+    const name = profile.firstName ? profile.firstName : profile.username;
 
     // 1. Send Basic Info
     await ctx.reply(
-      `👤 *User:* ${fullName || profile.username}\n` +
+      `👤 *User:* ${name}\n` +
         `🪪 *Role:* ${profile.role}\n` +
         `🎯 *Main Goal:* ${profile.goal}\n` +
         `🌍 *Location:* ${profile.country || "Not set"}`,
@@ -65,15 +61,15 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
     );
 
     // 3. Group experiences by type and send
-    const expByType = groupBy(experiences, "type");
+    // const expByType = groupBy(experiences, "type");
 
-    for (const [type, exps] of Object.entries(expByType)) {
-      await ctx.reply(
-        `*Experience Roadmap: *\n\n` +
-          exps.map((exp) => formatExperience(exp)).join("\n\n"),
-        { parse_mode: "Markdown" }
-      );
-    }
+    // for (const [type, exps] of Object.entries(expByType)) {
+    //   await ctx.reply(
+    //     `*Experience Roadmap: *\n\n` +
+    //       exps.map((exp) => formatExperience(exp)).join("\n\n"),
+    //     { parse_mode: "Markdown" }
+    //   );
+    // }
 
     // 4. Optional LinkedIn
     if (profile?.linkedinUrl) {
