@@ -35,26 +35,54 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
       return ctx.wizard.back();
     }
 
-    const jobDescription = ctx.message.text;
-    ctx.wizard.state.data!.application = {
-      jobDescription,
+    const input = ctx.message.text;
+    ctx.wizard.state.data.application = {
+      jobDescription: input,
     } as JobApplicationState;
 
-    const { generate, schema } = ServicesMap[Service.APPLY_TO] as Features;
+    const { generate: generate_jd, schema: schema_jd } = ServicesMap[
+      Service.JOB_DESCRIPTION
+    ] as Features;
 
+    const status = await ctx.reply(
+      "Extracting all the information from the JD..."
+    );
+    const jd_summary = await extract({
+      input: input,
+      system: generate_jd(ctx.session.profile),
+      schema: schema_jd,
+    });
+
+    await ctx.telegram.editMessageText(
+      ctx.session.profile.uid,
+      status.message_id,
+      undefined,
+      "Information extracted successfully. Analysing your profile..."
+    );
+
+    const { generate, schema } = ServicesMap[Service.APPLY_TO] as Features;
+    console.log(generate(ctx.session.profile));
     const extracted = await extract({
-      input: jobDescription,
+      input: JSON.stringify(jd_summary),
       system: generate(ctx.session.profile),
       schema,
     });
 
-    console.log(extracted);
-    ctx.wizard.state.data!.application = extracted;
+    await ctx.telegram.editMessageText(
+      ctx.session.profile.uid,
+      status.message_id,
+      undefined,
+      "Analysis completed!"
+    );
 
+    console.log(extracted, jd_summary);
+
+    ctx.wizard.state.data.application = extracted;
     await ctx.reply(
       `Tip: _Use /experience to fill your work experience and get better results!_`,
       { parse_mode: "Markdown" }
     );
+
     await ctx.reply(`Application Package Done!\n\nRole: *${extracted.title}*`, {
       reply_markup: Markup.inlineKeyboard([
         [Markup.button.callback("💻 See Skills Summary", "show_skills")],

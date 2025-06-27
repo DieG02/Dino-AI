@@ -1,5 +1,4 @@
 import { zodTextFormat } from "openai/helpers/zod";
-import { ExperienceType } from "../models";
 import { Features } from "./index";
 import { z } from "zod";
 
@@ -28,7 +27,7 @@ const zodInterface = z.object({
 
 const schema = zodTextFormat(zodInterface, "ExtractExperience");
 
-const instructions = (type: ExperienceType) => `
+const instructions = () => `
   You are an AI assistant designed to extract structured professional experience from user input. The data will be used to build a resume and must follow these rules:
 
   Important:
