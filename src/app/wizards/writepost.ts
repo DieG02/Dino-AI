@@ -3,14 +3,12 @@ import { Wizard } from "../../config/constants";
 import { BotContext } from "../../models/telegraf";
 import { extract } from "../../config/openai";
 import { parseCommand } from "../../lib/utils";
-import { PromptContext, Service, ServicesMap } from "../../services";
+import { Features, Service, ServicesMap } from "../../services";
 import { PostManager } from "../../store/posts";
 
 async function displayPost(ctx: BotContext) {
   const currentPost =
-    ctx.wizard.state.tempData!.generatedPosts[
-      ctx.wizard.state.tempData!.currentIndex
-    ];
+    ctx.wizard.state.data!.generatedPosts[ctx.wizard.state.data!.currentIndex];
   if (!currentPost) {
     await ctx.reply("No post found. Something went wrong.");
     return ctx.scene.leave();
@@ -19,18 +17,19 @@ async function displayPost(ctx: BotContext) {
   const buttons = Markup.inlineKeyboard([
     [Markup.button.callback("🗑️ Cancel", "writepost_cancel")],
     [
-      Markup.button.callback("🔄 Next", "writepost_next"),
       Markup.button.callback("✍️ Edit", "writepost_edit"),
+      Markup.button.callback("🔄 Next", "writepost_next"),
     ],
     [Markup.button.callback("✅ Confirm & Use This", "writepost_confirm")],
   ]);
 
   await ctx.reply(
     `Here's LinkedIn post option ${
-      ctx.wizard.state.tempData!.currentIndex + 1
+      ctx.wizard.state.data!.currentIndex + 1
     } for you:`
   );
-  await ctx.reply(currentPost.text, buttons);
+  const message = await ctx.reply(currentPost.text, buttons);
+  ctx.wizard.state.data.messageId = message.message_id;
 }
 
 const writePostWizard = new Scenes.WizardScene<BotContext>(
@@ -43,14 +42,15 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
 
     let { topic } = parseCommand(ctx.message?.text);
     if (!topic) {
-      const tempDraft = ctx.session.tempDraft?.[Wizard.WEEKLY_IDEAS];
-      if (tempDraft && tempDraft.content) {
-        await ctx.reply(`📋 Using your saved draft:\n\n_${tempDraft.content}_`);
-        topic = tempDraft.content;
+      const draft = ctx.session.draft?.[Wizard.WEEKLY_IDEAS];
+      if (draft && draft.content) {
+        await ctx.reply(`📋 Using your saved draft:\n\n_${draft.content}_`);
+        topic = draft.content;
       } else {
         // By default we don't want to let user use \writepost only [reservated for draft data]
         await ctx.reply(
-          "Please provide a topic after the `/writepost` command (e.g., _`/writepost` my new project_)."
+          "Please provide a topic after the `/writepost` command (e.g., _`/writepost` my new project_).",
+          { parse_mode: "Markdown" }
         );
         return ctx.scene.leave();
       }
@@ -66,8 +66,8 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
 
       for (let i = 0; i < numPostsToGenerate; i++) {
         const { create, schema } = ServicesMap[
-          Service.LINKEDIN_POST_GENERATION
-        ] as PromptContext;
+          Service.LINKEDIN_POST
+        ] as Features;
 
         const extracted = await extract({
           input: topic!,
@@ -79,7 +79,7 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
         if (extracted) {
           posts.push(extracted);
           // --- Clear draft ---
-          delete ctx.session.tempDraft![Wizard.WEEKLY_IDEAS];
+          delete ctx.session.draft[Wizard.WEEKLY_IDEAS];
         }
       }
 
@@ -90,7 +90,7 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
         return ctx.scene.leave();
       }
 
-      ctx.wizard.state.tempData = {
+      ctx.wizard.state.data = {
         generatedPosts: posts,
         currentIndex: 0,
       };
@@ -114,30 +114,30 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
       switch (data) {
         case "writepost_confirm":
           const confirmedPost =
-            ctx.wizard.state.tempData!.generatedPosts[
-              ctx.wizard.state.tempData!.currentIndex
+            ctx.wizard.state.data!.generatedPosts[
+              ctx.wizard.state.data!.currentIndex
             ];
           await ctx.answerCbQuery();
-          const copyButton = Markup.inlineKeyboard([
-            Markup.button.url(
-              "📋 Copy Post",
-              `tg://copy?text=${encodeURIComponent(confirmedPost.text)}`
-            ),
-          ]);
-          await ctx.editMessageReplyMarkup(copyButton.reply_markup);
+          await ctx.telegram.editMessageText(
+            ctx.session.profile.uid,
+            ctx.wizard.state.data.messageId,
+            undefined,
+            `\`${confirmedPost.text}\``,
+            { parse_mode: "Markdown" }
+          );
           await ctx.reply(`🎉 Great! It's ready to be copied to LinkedIn!`);
           await PostManager.createPost(ctx.session.profile.uid, confirmedPost);
           return ctx.scene.leave();
 
         case "writepost_next":
-          ctx.wizard.state.tempData!.currentIndex++;
+          ctx.wizard.state.data!.currentIndex++;
           if (
-            ctx.wizard.state.tempData!.currentIndex >=
-            ctx.wizard.state.tempData!.generatedPosts.length
+            ctx.wizard.state.data!.currentIndex >=
+            ctx.wizard.state.data!.generatedPosts.length
           ) {
-            ctx.wizard.state.tempData!.currentIndex = 0; // Loop back to the first post if no more options
+            ctx.wizard.state.data!.currentIndex = 0; // Loop back to the first post if no more options
             await ctx.reply(
-              "That's all the initial options. Looping back to the first one. Feel free to 'Edit This' or 'Generate More' (if implemented)."
+              "That's all the initial options. Looping back to the first one. Feel free to 'Edit This' or 'Generate More' later."
             );
           }
           await ctx.answerCbQuery();
@@ -185,16 +185,14 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
 
     const editedText = ctx.message.text;
     const currentPost =
-      ctx.wizard.state.tempData!.generatedPosts[
-        ctx.wizard.state.tempData!.currentIndex
+      ctx.wizard.state.data!.generatedPosts[
+        ctx.wizard.state.data!.currentIndex
       ];
 
     await ctx.reply("🔄 Incorporating your edits... Please wait.");
 
     try {
-      const { update, schema } = ServicesMap[
-        Service.LINKEDIN_POST_GENERATION
-      ] as PromptContext;
+      const { update, schema } = ServicesMap[Service.LINKEDIN_POST] as Features;
 
       const extracted = await extract({
         input: editedText,
@@ -203,11 +201,11 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
       });
 
       if (extracted) {
-        ctx.wizard.state.tempData!.generatedPosts[
-          ctx.wizard.state.tempData!.currentIndex
+        ctx.wizard.state.data!.generatedPosts[
+          ctx.wizard.state.data!.currentIndex
         ] = extracted;
 
-        console.log({ edited: ctx.wizard.state.tempData!.generatedPosts });
+        console.log({ edited: ctx.wizard.state.data!.generatedPosts });
 
         await ctx.reply("✨ Here's the revised post:");
         await displayPost(ctx as BotContext);

@@ -3,7 +3,7 @@ import { Wizard } from "../../config/constants";
 import { BotContext } from "../../models/telegraf";
 import { UserExperience } from "../../models";
 import { extract } from "../../config/openai";
-import { PromptContext, Service, ServicesMap } from "../../services";
+import { Features, Service, ServicesMap } from "../../services";
 
 interface JobApplicationState {
   jobDescription: string;
@@ -21,7 +21,7 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
   async (ctx) => {
     await ctx.reply(`Please paste the job description you'd like to apply to:`);
 
-    ctx.wizard.state.tempData = {
+    ctx.wizard.state.data = {
       application: {},
       messageId: null,
     };
@@ -36,13 +36,11 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
     }
 
     const jobDescription = ctx.message.text;
-    ctx.wizard.state.tempData!.application = {
+    ctx.wizard.state.data!.application = {
       jobDescription,
     } as JobApplicationState;
 
-    const { generate, schema } = ServicesMap[
-      Service.APPLY_TO_JOB_EXTRACTION
-    ] as PromptContext;
+    const { generate, schema } = ServicesMap[Service.APPLY_TO] as Features;
 
     const extracted = await extract({
       input: jobDescription,
@@ -51,7 +49,7 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
     });
 
     console.log(extracted);
-    ctx.wizard.state.tempData!.application = extracted;
+    ctx.wizard.state.data!.application = extracted;
 
     await ctx.reply(
       `Tip: _Use /experience to fill your work experience and get better results!_`,
@@ -70,7 +68,7 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
       `So, you want to apply for the role of *${extracted.title}*? Here’s what I have prepared for you...\n\n`,
       { parse_mode: "Markdown" }
     );
-    ctx.wizard.state.tempData!.messageId = template.message_id;
+    ctx.wizard.state.data!.messageId = template.message_id;
 
     return ctx.wizard.next();
   },
@@ -81,8 +79,8 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
 
     if (!ctx.callbackQuery || !("data" in ctx.callbackQuery)) return;
     const action = ctx.callbackQuery.data;
-    const { application } = ctx.wizard.state.tempData!;
-    const messageId = ctx.wizard.state.tempData!.messageId;
+    const { application } = ctx.wizard.state.data!;
+    const messageId = ctx.wizard.state.data!.messageId;
     const chatId = ctx.session.profile.uid;
 
     switch (true) {

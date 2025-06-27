@@ -1,7 +1,7 @@
 import { Scenes, Markup } from "telegraf";
 import { BotContext } from "../../models/telegraf";
 import { extract } from "../../config/openai";
-import { PromptContext, Service, ServicesMap } from "../../services";
+import { Features, Service, ServicesMap } from "../../services";
 import { Wizard } from "../../config/constants";
 import { PostSuggestion } from "../../models";
 import { callbackQuery } from "telegraf/filters";
@@ -44,7 +44,7 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
       }
     );
 
-    ctx.wizard.state.tempData = {
+    ctx.wizard.state.data = {
       input: "",
       ideas: [],
       messageIds: [],
@@ -72,9 +72,7 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
     const loadingMsg = await ctx.reply("🧠 Generating 5 custom ideas...");
 
     try {
-      const { create, schema } = ServicesMap[
-        Service.WEEKLY_IDEAS_GENERATION
-      ] as PromptContext;
+      const { create, schema } = ServicesMap[Service.WEEKLY_IDEAS] as Features;
       const { ideas } = await extract({
         input: ctx.message.text,
         system: create(ctx.session.profile),
@@ -82,8 +80,8 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
       });
 
       // Store for later use
-      ctx.wizard.state.tempData!.ideas = ideas;
-      ctx.wizard.state.tempData!.input = ctx.message.text;
+      ctx.wizard.state.data!.ideas = ideas;
+      ctx.wizard.state.data!.input = ctx.message.text;
 
       // Delete loading message
       await ctx.deleteMessage(loadingMsg.message_id);
@@ -104,7 +102,7 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
         }
       );
 
-      ctx.wizard.state.tempData!.messageIds.push(ideasMsg.message_id);
+      ctx.wizard.state.data!.messageIds.push(ideasMsg.message_id);
       return ctx.wizard.next();
     } catch (error) {
       console.error("Generation error:", error);
@@ -117,7 +115,7 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
   async (ctx) => {
     if (!ctx.callbackQuery || !("data" in ctx.callbackQuery)) return;
     const action = ctx.callbackQuery.data;
-    const { ideas, messageIds } = ctx.wizard.state.tempData!;
+    const { ideas, messageIds } = ctx.wizard.state.data!;
 
     try {
       switch (true) {
@@ -126,8 +124,8 @@ const weeklyIdeasWizard = new Scenes.WizardScene<BotContext>(
           const idea = ideas[index];
 
           // Store in session with timestamp
-          ctx.session.tempDraft = {
-            ...ctx.session.tempDraft,
+          ctx.session.draft = {
+            ...ctx.session.draft,
             [Wizard.WEEKLY_IDEAS]: {
               content: idea.content,
               type: idea.type,

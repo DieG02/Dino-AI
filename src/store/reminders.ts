@@ -1,10 +1,10 @@
 import { Timestamp } from "@google-cloud/firestore";
-import { REMINDERS_COLLECTION } from "../config/constants";
+import { Collection } from "../config/constants";
 import { scheduleReminder } from "../config/cron";
 import { Reminder } from "../models";
 import { db } from "./index";
 
-const ReminderCollection = db.collection(REMINDERS_COLLECTION);
+const ReminderCollection = db.collection(Collection.REMINDERS);
 
 export async function addReminder(
   reminder: Omit<Reminder, "id" | "createdAt">

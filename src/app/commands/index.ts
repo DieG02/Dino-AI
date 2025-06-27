@@ -9,7 +9,7 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
     // Clear the entire session for the current user
     ctx.session = {
       profile: ctx.session?.profile,
-      tempDraft: {},
+      draft: {},
     };
 
     if (ctx.scene && ctx.scene.current) {

@@ -1,6 +1,6 @@
 import { zodTextFormat } from "openai/helpers/zod";
-import { PromptContext } from "./index";
 import { UserProfile } from "../models";
+import { Features } from "./index";
 import { z } from "zod";
 
 const zodInterface = z.object({
@@ -28,6 +28,8 @@ const IdeasOutputWrapperSchema = z.object({
       "An array containing 5 unique and high-quality LinkedIn post ideas, each conforming to the specified format."
     ),
 });
+
+const schema = zodTextFormat(IdeasOutputWrapperSchema, "WeeklyIdeaPost");
 
 const instructions = (profile: UserProfile, avoidedThemes: string[] = []) => {
   let avoidSection = "";
@@ -102,8 +104,7 @@ const instructions = (profile: UserProfile, avoidedThemes: string[] = []) => {
   `;
 };
 
-const schema = zodTextFormat(IdeasOutputWrapperSchema, "WeeklyIdeaPost");
-export const IdeasGenerator: Omit<PromptContext, "generate" | "update"> = {
+export default {
   create: instructions,
   schema,
-};
+} as Partial<Features>;

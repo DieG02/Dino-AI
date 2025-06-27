@@ -4,7 +4,7 @@ import { BotContext } from "../../models/telegraf";
 import { extract } from "../../config/openai";
 import { parseCommand, parseDatetime } from "../../lib/utils";
 import { addReminder, getReminders } from "../../store/reminders";
-import { PromptContext, Service, ServicesMap } from "../../services";
+import { Features, Service, ServicesMap } from "../../services";
 
 const followupWizard = new Scenes.WizardScene<BotContext>(
   Wizard.FOLLOW_UP,
@@ -46,9 +46,7 @@ const followupWizard = new Scenes.WizardScene<BotContext>(
       return ctx.scene.leave();
     }
 
-    const { schema, generate } = ServicesMap[
-      Service.FOLLOW_UP_EXTRACTION
-    ] as PromptContext;
+    const { schema, generate } = ServicesMap[Service.FOLLOW_UP] as Features;
 
     const { reminder } = await extract({
       input: topic,
@@ -65,7 +63,7 @@ const followupWizard = new Scenes.WizardScene<BotContext>(
       return;
     }
 
-    ctx.wizard.state.tempData = {
+    ctx.wizard.state.data = {
       task,
       date,
       time,
@@ -99,7 +97,7 @@ const followupWizard = new Scenes.WizardScene<BotContext>(
     const action = ctx.callbackQuery.data;
 
     if (action === "confirm") {
-      const { task, date, time, contact } = ctx.wizard.state.tempData!;
+      const { task, date, time, contact } = ctx.wizard.state.data!;
       await addReminder({
         datetime: parseDatetime(date, time).dateFormat,
         chatId: ctx.session.profile.uid,

@@ -4,9 +4,9 @@ import { Wizard } from "../config/constants";
 
 export interface WizardState {
   // available in scene ctx under `ctx.wizard.state.[key]`
-  tempProfile: Partial<UserProfile>;
+  profile: Partial<UserProfile>;
   currentMissingField: keyof UserProfile;
-  tempData?: { [key: string]: any };
+  data: { [key: string]: any };
 }
 
 export interface WizardSession extends Scenes.WizardSessionData {
@@ -17,7 +17,7 @@ export interface WizardSession extends Scenes.WizardSessionData {
 export interface BotSession extends Scenes.WizardSession<WizardSession> {
   // will be available globally under `ctx.session.[key]`
   profile: UserProfile;
-  tempDraft: Partial<Record<Wizard, any>> | null;
+  draft: Partial<Record<Wizard, any>>;
 }
 
 export interface BotContext extends Context {

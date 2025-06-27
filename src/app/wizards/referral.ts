@@ -4,7 +4,7 @@ import { extract } from "../../config/openai";
 import { Markup } from "telegraf";
 import { UserProfile } from "../../models";
 import { Wizard } from "../../config/constants";
-import { PromptContext, Service, ServicesMap } from "../../services";
+import { Features, Service, ServicesMap } from "../../services";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
@@ -18,13 +18,13 @@ interface ReferralState {
 export const referralWizard = new Scenes.WizardScene<BotContext>(
   Wizard.REFERRAL,
 
-  // Step 0: Initialize tempData
+  // Step 0: Initialize data
   async (ctx) => {
     await ctx.reply(
       "Please paste the full job description for the role you're applying for:"
     );
 
-    ctx.wizard.state.tempData = {
+    ctx.wizard.state.data = {
       jd: null,
       referralType: null,
       selectedExperience: null,
@@ -40,10 +40,8 @@ export const referralWizard = new Scenes.WizardScene<BotContext>(
       return await ctx.reply("Please send a text message");
     }
 
-    if (!ctx.session.tempDraft?.[Wizard.REFERRAL]) {
-      const { generate } = ServicesMap[
-        Service.REFERRAL_GENERATION
-      ] as PromptContext;
+    if (!ctx.session.draft?.[Wizard.REFERRAL]) {
+      const { generate } = ServicesMap[Service.REFERRAL] as Features;
 
       const JDSchema = z.object({
         title: z.string(),
@@ -63,19 +61,19 @@ export const referralWizard = new Scenes.WizardScene<BotContext>(
       });
 
       // Store in session with timestamp
-      ctx.session.tempDraft = {
-        ...ctx.session.tempDraft,
+      ctx.session.draft = {
+        ...ctx.session.draft,
         [Wizard.REFERRAL]: {
           ...extracted,
           storedAt: Date.now(),
         },
       };
-      ctx.wizard.state.tempData!.jd = extracted;
+      ctx.wizard.state.data!.jd = extracted;
 
       console.log(extracted);
     } else {
-      const jd = ctx.session.tempDraft![Wizard.REFERRAL];
-      ctx.wizard.state.tempData!.jd = jd;
+      const jd = ctx.session.draft![Wizard.REFERRAL];
+      ctx.wizard.state.data!.jd = jd;
       await ctx.reply(
         `We found the job description for the *${jd.title}* position at *${jd.company}* already to use!`,
         { parse_mode: "Markdown" }
@@ -100,8 +98,8 @@ export const referralWizard = new Scenes.WizardScene<BotContext>(
       return;
     }
     const dmType = ctx.callbackQuery.data.replace("dm_", "");
-    ctx.wizard.state.tempData!.referralType = dmType;
-    ctx.wizard.state.tempData!.selectedExperience = null;
+    ctx.wizard.state.data!.referralType = dmType;
+    ctx.wizard.state.data!.selectedExperience = null;
 
     await ctx.reply(
       `Tip: _Use /experience to fill your work experience and get better results!_`,
@@ -109,13 +107,11 @@ export const referralWizard = new Scenes.WizardScene<BotContext>(
     );
 
     const { profile } = ctx.session;
-    const { referralType, selectedExperience, jd } = ctx.wizard.state.tempData!;
+    const { referralType, selectedExperience, jd } = ctx.wizard.state.data!;
 
     const update = await ctx.reply("✍️ Generating your message...");
 
-    const { schema, create } = ServicesMap[
-      Service.REFERRAL_GENERATION
-    ] as PromptContext;
+    const { schema, create } = ServicesMap[Service.REFERRAL] as Features;
 
     const result = await extract({
       input: "",
@@ -128,7 +124,7 @@ export const referralWizard = new Scenes.WizardScene<BotContext>(
       schema,
     });
 
-    ctx.wizard.state.tempData!.generatedMessage = result.text;
+    ctx.wizard.state.data!.generatedMessage = result.text;
 
     await ctx.telegram.editMessageText(
       ctx.session.profile.uid,
@@ -137,7 +133,7 @@ export const referralWizard = new Scenes.WizardScene<BotContext>(
       `✅ Here's your generated DM:\n\n\`${result.text}\``,
       { parse_mode: "Markdown" }
     );
-    delete ctx.session.tempDraft![Wizard.REFERRAL];
+    delete ctx.session.draft![Wizard.REFERRAL];
 
     return ctx.wizard.next();
   }

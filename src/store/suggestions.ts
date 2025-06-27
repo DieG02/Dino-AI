@@ -1,10 +1,7 @@
-import { PostSuggestion } from "../models";
 import { Timestamp, FieldValue } from "firebase-admin/firestore";
+import { Collection } from "../config/constants";
+import { PostSuggestion } from "../models";
 import { db } from "./index";
-import {
-  POST_SUGGESTIONS_COLLECTION,
-  USERS_COLLECTION,
-} from "../config/constants";
 
 interface GetSuggestionsOptions {
   limit?: number;
@@ -16,9 +13,9 @@ interface GetSuggestionsOptions {
 export class SuggestionsManager {
   private static collection(userId: string) {
     return db
-      .collection(USERS_COLLECTION)
+      .collection(Collection.USERS)
       .doc(userId)
-      .collection(POST_SUGGESTIONS_COLLECTION);
+      .collection(Collection.POST_SUGGESTIONS);
   }
 
   /**

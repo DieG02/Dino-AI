@@ -3,7 +3,7 @@ import { Wizard } from "../../config/constants";
 import { BotContext } from "../../models/telegraf";
 import { ExperienceType, UserExperience } from "../../models";
 import { extract } from "../../config/openai";
-import { PromptContext, Service, ServicesMap } from "../../services";
+import { Features, Service, ServicesMap } from "../../services";
 import { getExperienceTemplate } from "../../lib/utils";
 import { addExperience } from "../../store/experiences";
 
@@ -27,7 +27,7 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       ])
     );
 
-    ctx.wizard.state.tempData = {
+    ctx.wizard.state.data = {
       type: null,
       experience: null,
     };
@@ -42,7 +42,7 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
     }
     const action = ctx.callbackQuery.data;
     await ctx.answerCbQuery();
-    ctx.wizard.state.tempData!.type = action as ExperienceType;
+    ctx.wizard.state.data!.type = action as ExperienceType;
 
     await ctx.editMessageText(
       `Write a short description of your ${action} experience. Ex:\n\n` +
@@ -61,9 +61,7 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
 
     const input = ctx.message?.text;
 
-    const { schema, generate } = ServicesMap[
-      Service.EXPERIENCE_EXTRACTION
-    ] as PromptContext;
+    const { schema, generate } = ServicesMap[Service.EXPERIENCE] as Features;
 
     const { experience }: { experience: UserExperience } = await extract({
       input: input,
@@ -71,10 +69,10 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       schema,
     });
     console.log(experience);
-    ctx.wizard.state.tempData!.experience = experience;
+    ctx.wizard.state.data!.experience = experience;
 
     const summary = getExperienceTemplate(
-      ctx.wizard.state.tempData!.type,
+      ctx.wizard.state.data!.type,
       experience
     );
     await ctx.reply(`${summary}\n\nConfirm to save?`, {
@@ -94,7 +92,7 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       return;
     }
     const action = ctx.callbackQuery.data;
-    const experience = ctx.wizard.state.tempData!.experience;
+    const experience = ctx.wizard.state.data!.experience;
 
     if (action === "save") {
       await addExperience(ctx.session.profile.uid, experience);

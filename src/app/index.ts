@@ -12,7 +12,7 @@ export function setupBotApp(bot: Telegraf<BotContext>) {
       defaultSession: () => ({
         profile: {} as BotContext["session"]["profile"],
         wizard: { state: {} },
-        tempDraft: null,
+        draft: {},
       }),
     })
   );
