@@ -1,7 +1,7 @@
 import { CronJob } from "cron";
 import { Reminder } from "../models";
 import { sendMessageToUser } from "../lib/utils";
-import { deleteReminders } from "../store/reminders";
+import { ReminderManager } from "../store/reminders";
 import { Timestamp } from "firebase-admin/firestore";
 import { Collection } from "./constants";
 import { db } from "../store";
@@ -29,7 +29,7 @@ export async function scheduleReminder(reminder: Reminder) {
     );
     console.log("Sending reminder to:", chatId);
     activeJobs.delete(id);
-    await deleteReminders(id);
+    await ReminderManager.delete(id);
   });
 
   job.start();

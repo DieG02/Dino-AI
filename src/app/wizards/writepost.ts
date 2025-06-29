@@ -77,7 +77,6 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
           schema,
         });
 
-        console.log("Generated post content:", extracted);
         if (extracted) {
           posts.push(extracted);
           // --- Clear draft ---
@@ -128,10 +127,7 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
             { parse_mode: "Markdown" }
           );
           await ctx.reply(`🎉 Great! It's ready to be copied to LinkedIn!`);
-          await PostManager.createPost(
-            ctx.session.profile.me.uid,
-            confirmedPost
-          );
+          await PostManager.add(ctx.session.profile.me.uid, confirmedPost);
           return ctx.scene.leave();
 
         case "writepost_next":
@@ -178,7 +174,7 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
     }
 
     // Fallback if unexpected message
-    await ctx.reply("Please use the buttons or send your edits.");
+    await ctx.reply("Please use the buttons.");
     return ctx.wizard.current;
   },
 
@@ -209,8 +205,6 @@ const writePostWizard = new Scenes.WizardScene<BotContext>(
         ctx.wizard.state.data!.generatedPosts[
           ctx.wizard.state.data!.currentIndex
         ] = extracted;
-
-        console.log({ edited: ctx.wizard.state.data!.generatedPosts });
 
         await ctx.reply("✨ Here's the revised post:");
         await displayPost(ctx as BotContext);

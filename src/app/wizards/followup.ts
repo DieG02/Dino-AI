@@ -3,7 +3,7 @@ import { Wizard } from "../../config/constants";
 import { BotContext } from "../../models/telegraf";
 import { extract } from "../../config/openai";
 import { parseCommand, parseDatetime } from "../../lib/utils";
-import { addReminder, getReminders } from "../../store/reminders";
+import { ReminderManager } from "../../store/reminders";
 import { Features, Service, ServicesMap } from "../../services";
 
 const followupWizard = new Scenes.WizardScene<BotContext>(
@@ -13,11 +13,14 @@ const followupWizard = new Scenes.WizardScene<BotContext>(
   async (ctx) => {
     if (!ctx.message || !("text" in ctx.message))
       return await ctx.reply("❌ Please send a text message");
+
     const text = ctx.message?.text || "";
     const { topic } = parseCommand(text);
 
     if (!topic) {
-      const allReminders = await getReminders(ctx.session.profile.me.uid);
+      const allReminders = await ReminderManager.getAll(
+        ctx.session.profile.me.uid
+      );
 
       const myReminders = allReminders
         .map(
@@ -35,7 +38,7 @@ const followupWizard = new Scenes.WizardScene<BotContext>(
       if (allReminders.length > 0)
         await ctx.reply(
           "Here are all your pending follow ups:\n\n" + myReminders,
-          { parse_mode: "MarkdownV2" }
+          { parse_mode: "Markdown" }
         );
       else
         await ctx.reply(
@@ -95,12 +98,12 @@ const followupWizard = new Scenes.WizardScene<BotContext>(
     }
 
     const action = ctx.callbackQuery.data;
+    const uid = ctx.session.profile.me.uid;
 
     if (action === "confirm") {
       const { task, date, time, contact } = ctx.wizard.state.data!;
-      await addReminder({
+      await ReminderManager.add(uid, {
         datetime: parseDatetime(date, time).dateFormat,
-        chatId: ctx.session.profile.me.uid,
         task,
         contact,
       });

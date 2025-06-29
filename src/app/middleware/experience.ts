@@ -1,5 +1,5 @@
 import { MiddlewareFn } from "telegraf";
-import { ExperienceManager } from "../../models/experience";
+import { ExperienceManager } from "../../store/experience";
 import { BotContext } from "../../models/telegraf";
 
 export const experienceMiddleware: MiddlewareFn<BotContext> = async (

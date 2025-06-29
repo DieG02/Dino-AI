@@ -1,8 +1,8 @@
 import { Context, Scenes } from "telegraf";
 import { UserProfile } from "../models";
 import { Wizard } from "../config/constants";
-import { ProfileManager } from "./profile";
-import { ExperienceManager } from "./experience";
+import { ProfileManager } from "../store/profile";
+import { ExperienceManager } from "../store/experience";
 
 export interface WizardState {
   // available in scene ctx under `ctx.wizard.state.[key]`

@@ -1,6 +1,6 @@
 import { MiddlewareFn } from "telegraf";
 import { Collection } from "../../config/constants";
-import { ProfileManager } from "../../models/profile";
+import { ProfileManager } from "../../store/profile";
 import { BotContext } from "../../models/telegraf";
 import { db } from "../../store";
 
@@ -33,7 +33,7 @@ export const authMiddleware: MiddlewareFn<BotContext> = async (
     return await next();
   } catch (error) {
     await ctx.reply(
-      "There was an issue loading your profile. Please try /reset to fix it."
+      "There was an issue loading your profile. Please try /restart to fix it."
     );
     throw new Error("Session.Auth\n" + error);
   }

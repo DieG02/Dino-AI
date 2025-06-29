@@ -1,25 +1,17 @@
 import { Scenes, Markup } from "telegraf";
 import { Wizard } from "../../config/constants";
 import { BotContext } from "../../models/telegraf";
-import { UserExperience } from "../../models";
 import { extract } from "../../config/openai";
 import { Features, Service, ServicesMap } from "../../services";
-
-export interface JobApplicationState {
-  jobDescription: string;
-  requirements: string[];
-  matchedSkills: string[];
-  missingSkills: string[];
-  matchPercentage: number;
-  similarExperience?: UserExperience;
-}
 
 const applyToWizard = new Scenes.WizardScene<BotContext>(
   Wizard.APPLY_TO,
 
   // Step 1: Get job description
   async (ctx) => {
-    await ctx.reply(`Please paste the job description you'd like to apply to:`);
+    await ctx.reply(
+      `💼 I’ll help you write a personalized message for a job.\nPlease paste the job description content.`
+    );
 
     ctx.wizard.state.data = {
       application: {},
@@ -39,7 +31,7 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
     const profile = ctx.session.profile.me;
     ctx.wizard.state.data.application = {
       jobDescription: input,
-    } as JobApplicationState;
+    };
 
     const { generate: generate_jd, schema: schema_jd } = ServicesMap[
       Service.JOB_DESCRIPTION

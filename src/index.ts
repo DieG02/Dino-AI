@@ -42,15 +42,15 @@ setupBotApp(main);
     const webhookPort = PORT ? parseInt(PORT) : 8080;
 
     try {
+      console.log(`🚀 Webhook server listening on port ${webhookPort}`);
+      console.log(`Telegram webhook set to: ${WEBHOOK_URL}`);
+      console.log("🤖 Bot is running in Webhook Mode.");
       await main.launch({
         webhook: {
           domain: WEBHOOK_URL,
           port: webhookPort,
         },
       });
-      console.log(`🚀 Webhook server listening on port ${webhookPort}`);
-      console.log(`Telegram webhook set to: ${WEBHOOK_URL}`);
-      console.log("🤖 Bot is running in Webhook Mode.");
     } catch (error) {
       console.error("Error starting bot in webhook mode:", error);
       process.exit(1);
@@ -58,9 +58,9 @@ setupBotApp(main);
   } else {
     // --- DEVELOPMENT MODE (LONG POLLING) ---
     try {
-      await main.launch();
       console.log("🤖 Bot is running with long polling (development mode)");
       console.log("Send /start to your bot in Telegram to test it.");
+      await main.launch();
     } catch (error) {
       console.error("Error starting bot in long polling mode:", error);
       process.exit(1);
