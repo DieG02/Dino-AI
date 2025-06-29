@@ -1,16 +1,16 @@
 import { Timestamp } from "firebase-admin/firestore";
+import { Collection } from "../config/constants";
 import { UserPost } from "../models";
 import { db } from "./index";
-import { POSTS_COLLECTION, USERS_COLLECTION } from "../config/constants";
 
 const postsCollection = (userId: string) =>
-  db.collection(USERS_COLLECTION).doc(userId).collection(POSTS_COLLECTION);
+  db.collection(Collection.USERS).doc(userId).collection(Collection.POSTS);
 
 export const PostManager = {
   /**
    * Creates a new post in user's subcollection
    */
-  async createPost(
+  async add(
     userId: string,
     postData: Omit<UserPost, "uid" | "id" | "createdAt">
   ): Promise<UserPost> {
@@ -34,7 +34,7 @@ export const PostManager = {
   /**
    * Gets all posts for a user, ordered by date
    */
-  async getUserPosts(userId: string): Promise<UserPost[]> {
+  async getAll(userId: string): Promise<UserPost[]> {
     try {
       const snapshot = await postsCollection(userId)
         .orderBy("createdAt", "desc")
@@ -50,7 +50,7 @@ export const PostManager = {
   /**
    * Updates an existing post
    */
-  async updatePost(
+  async update(
     userId: string,
     postId: string,
     updates: Partial<Omit<UserPost, "id" | "uid" | "createdAt">>
@@ -71,7 +71,7 @@ export const PostManager = {
   /**
    * Schedules a post for future publishing
    */
-  async schedulePost(
+  async schedule(
     userId: string,
     postId: string,
     publishAt: Date

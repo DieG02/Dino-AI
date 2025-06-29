@@ -1,27 +1,19 @@
 import { Scenes, Markup } from "telegraf";
 import { Wizard } from "../../config/constants";
 import { BotContext } from "../../models/telegraf";
-import { UserExperience } from "../../models";
 import { extract } from "../../config/openai";
-import { PromptContext, Service, ServicesMap } from "../../services";
-
-interface JobApplicationState {
-  jobDescription: string;
-  requirements: string[];
-  matchedSkills: string[];
-  missingSkills: string[];
-  matchPercentage: number;
-  similarExperience?: UserExperience;
-}
+import { Features, Service, ServicesMap } from "../../services";
 
 const applyToWizard = new Scenes.WizardScene<BotContext>(
   Wizard.APPLY_TO,
 
   // Step 1: Get job description
   async (ctx) => {
-    await ctx.reply(`Please paste the job description you'd like to apply to:`);
+    await ctx.reply(
+      `💼 I’ll help you write a personalized message for a job.\nPlease paste the job description content.`
+    );
 
-    ctx.wizard.state.tempData = {
+    ctx.wizard.state.data = {
       application: {},
       messageId: null,
     };
@@ -35,28 +27,52 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
       return ctx.wizard.back();
     }
 
-    const jobDescription = ctx.message.text;
-    ctx.wizard.state.tempData!.application = {
-      jobDescription,
-    } as JobApplicationState;
+    const input = ctx.message.text;
+    const profile = ctx.session.profile.me;
+    ctx.wizard.state.data.application = {
+      jobDescription: input,
+    };
 
-    const { generate, schema } = ServicesMap[
-      Service.APPLY_TO_JOB_EXTRACTION
-    ] as PromptContext;
+    const { generate: generate_jd, schema: schema_jd } = ServicesMap[
+      Service.JOB_DESCRIPTION
+    ] as Features;
 
+    const status = await ctx.reply(
+      "Extracting all the information from the JD..."
+    );
+    const jd_summary = await extract({
+      input: input,
+      system: generate_jd(),
+      schema: schema_jd,
+    });
+
+    await ctx.telegram.editMessageText(
+      profile.uid,
+      status.message_id,
+      undefined,
+      "Information extracted successfully. Analysing your profile..."
+    );
+
+    const { generate, schema } = ServicesMap[Service.APPLY_TO] as Features;
     const extracted = await extract({
-      input: jobDescription,
-      system: generate(ctx.session.profile),
+      input: JSON.stringify(jd_summary),
+      system: generate(profile, ctx.session.experience.all),
       schema,
     });
 
-    console.log(extracted);
-    ctx.wizard.state.tempData!.application = extracted;
+    await ctx.telegram.editMessageText(
+      profile.uid,
+      status.message_id,
+      undefined,
+      "Analysis completed!"
+    );
 
+    ctx.wizard.state.data.application = extracted;
     await ctx.reply(
       `Tip: _Use /experience to fill your work experience and get better results!_`,
       { parse_mode: "Markdown" }
     );
+
     await ctx.reply(`Application Package Done!\n\nRole: *${extracted.title}*`, {
       reply_markup: Markup.inlineKeyboard([
         [Markup.button.callback("💻 See Skills Summary", "show_skills")],
@@ -70,7 +86,7 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
       `So, you want to apply for the role of *${extracted.title}*? Here’s what I have prepared for you...\n\n`,
       { parse_mode: "Markdown" }
     );
-    ctx.wizard.state.tempData!.messageId = template.message_id;
+    ctx.wizard.state.data!.messageId = template.message_id;
 
     return ctx.wizard.next();
   },
@@ -81,9 +97,9 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
 
     if (!ctx.callbackQuery || !("data" in ctx.callbackQuery)) return;
     const action = ctx.callbackQuery.data;
-    const { application } = ctx.wizard.state.tempData!;
-    const messageId = ctx.wizard.state.tempData!.messageId;
-    const chatId = ctx.session.profile.uid;
+    const { application } = ctx.wizard.state.data!;
+    const messageId = ctx.wizard.state.data!.messageId;
+    const chatId = ctx.session.profile.me.uid;
 
     switch (true) {
       case action === "show_skills":

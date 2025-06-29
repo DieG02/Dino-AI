@@ -1,8 +1,7 @@
 import { MiddlewareFn } from "telegraf";
-import { UserProfile } from "../../models";
-import { BotContext } from "../../models/telegraf";
-import { Timestamp } from "firebase-admin/firestore";
 import { Collection } from "../../config/constants";
+import { ProfileManager } from "../../store/profile";
+import { BotContext } from "../../models/telegraf";
 import { db } from "../../store";
 
 // This middleware will ensure ctx.session.profile is available
@@ -11,61 +10,45 @@ export const authMiddleware: MiddlewareFn<BotContext> = async (
   ctx: BotContext,
   next: () => Promise<void>
 ) => {
-  if (!ctx.from) throw new Error("No user context");
-
-  const telegramId = String(ctx.from.id);
-  const userDocRef = db.collection(Collection.USERS).doc(telegramId);
+  if (!ctx.from?.id) throw new Error("No user context");
 
   try {
-    if (!ctx.session.profile || Object.keys(ctx.session.profile).length === 0) {
-      const userDoc = await userDocRef.get();
-
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        if (userData) {
-          ctx.session.profile = userData as UserProfile;
-        } else {
-          ctx.session.profile = {} as UserProfile;
-        }
-      } else {
-        const newUser: UserProfile = {
-          uid: telegramId,
-          firstName: ctx.from?.first_name ?? "",
-          lastName: ctx.from?.last_name ?? "",
-          username: ctx.from?.username ?? "",
-          role: "",
-          industry: "",
-          goal: "",
-          techStack: [],
-          languages: [],
-          experiences: [],
-          joinedAt: Timestamp.now(),
-        };
-        await userDocRef.set(newUser, { merge: true });
-        ctx.session.profile = newUser;
-      }
+    if (ctx.session._init?.profile) {
+      ctx.session.profile.refresh();
+      return await next();
     }
+    const telegramId = String(ctx.from.id);
+    const manager = new ProfileManager(telegramId);
+    const userDocRef = db.collection(Collection.USERS).doc(telegramId);
+    ctx.session.profile = manager;
+
+    const user = await userDocRef.get();
+    if (user.exists) {
+      ctx.session.profile.refresh();
+    } else {
+      ctx.session.profile.create(ctx);
+    }
+
+    ctx.session._init.profile = true;
+    return await next();
   } catch (error) {
-    console.error("Error loading or creating user profile:", error);
     await ctx.reply(
-      "There was an issue loading or creating your profile. Please try again or use /setprofile."
+      "There was an issue loading your profile. Please try /restart to fix it."
     );
-    ctx.session.profile = ctx.session.profile || ({} as UserProfile);
-    return;
+    throw new Error("Session.Auth\n" + error);
   }
-  await next();
 };
 
 export const profileMiddleware: MiddlewareFn<BotContext> = async (
   ctx: BotContext,
   next: () => Promise<void>
 ) => {
-  if (!ctx.session?.profile?.role) {
+  if (!ctx.session.profile.me) {
     await ctx.reply(
-      "Please complete your profile using /setprofile before continuing."
+      "Please use /setprofile to complete your profile before continuing."
     );
-    return;
+    throw new Error("Session.Profile failed!");
   }
 
-  return next();
+  return await next();
 };

@@ -4,8 +4,7 @@ import { BotContext } from "../../models/telegraf";
 import { extract } from "../../config/openai";
 import { mergeProfile } from "../../lib/utils";
 import { UserProfile } from "../../models";
-import { PromptContext, Service, ServicesMap } from "../../services";
-import { store } from "../../store/";
+import { Features, Service, ServicesMap } from "../../services";
 
 // Constants
 const saveOrCancelButtons = Markup.inlineKeyboard([
@@ -61,12 +60,10 @@ const setProfile = new Scenes.WizardScene<BotContext>(
     }
 
     const inputText = ctx.message.text;
-    ctx.wizard.state.tempProfile ??= ctx.session.profile;
+    ctx.wizard.state.profile ??= ctx.session.profile.me;
 
     // Retrieve the prompt string/function using the key
-    const { generate, schema } = ServicesMap[
-      Service.PROFILE_EXTRACTION
-    ] as PromptContext;
+    const { generate, schema } = ServicesMap[Service.PROFILE] as Features;
 
     const extracted = await extract({
       input: inputText,
@@ -74,13 +71,13 @@ const setProfile = new Scenes.WizardScene<BotContext>(
       schema,
     });
 
-    ctx.wizard.state.tempProfile = mergeProfile(
-      ctx.wizard.state.tempProfile,
+    ctx.wizard.state.profile = mergeProfile(
+      ctx.wizard.state.profile,
       extracted
     );
 
     const missingFields = coreFields.filter(
-      (field) => !ctx.wizard.state.tempProfile[field]
+      (field) => !ctx.wizard.state.profile[field]
     );
 
     if (missingFields.length > 0) {
@@ -88,7 +85,7 @@ const setProfile = new Scenes.WizardScene<BotContext>(
       return await replyMarkdown(ctx, promptMissingFields(missingFields));
     }
 
-    await replyMarkdown(ctx, formatProfile(ctx.wizard.state.tempProfile));
+    await replyMarkdown(ctx, formatProfile(ctx.wizard.state.profile));
     await ctx.reply(
       "☢️ Core Profile completed! Do you want to save it?",
       saveOrCancelButtons
@@ -103,6 +100,7 @@ const setProfile = new Scenes.WizardScene<BotContext>(
       ctx.callbackQuery && "data" in ctx.callbackQuery
         ? ctx.callbackQuery.data
         : null;
+    const profile = ctx.session.profile.me;
 
     if (!action) {
       return await ctx.reply("Please use the buttons below 👇");
@@ -110,8 +108,7 @@ const setProfile = new Scenes.WizardScene<BotContext>(
 
     switch (action) {
       case "save_profile":
-        ctx.session.profile = ctx.wizard.state.tempProfile as UserProfile;
-        await store.upsertUser(ctx.session.profile.uid, ctx.session.profile);
+        await ctx.session.profile.update(ctx.wizard.state.profile);
         await ctx.editMessageText("✅ Profile saved! Use /myprofile to view.");
         break;
       case "cancel_profile":

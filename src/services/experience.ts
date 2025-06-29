@@ -1,9 +1,8 @@
 import { zodTextFormat } from "openai/helpers/zod";
-import { PromptContext } from "./index";
-import { ExperienceType } from "../models";
+import { Features } from "./index";
 import { z } from "zod";
 
-const zodExperienceSchema = z.object({
+const zodInterface = z.object({
   status: z.enum(["COMPLETED", "PENDING", "REJECTED"]),
   experience: z.object({
     role: z.string(),
@@ -26,17 +25,17 @@ const zodExperienceSchema = z.object({
     .or(z.literal("")),
 });
 
-export const schema = zodTextFormat(zodExperienceSchema, "ExtractExperience");
+const schema = zodTextFormat(zodInterface, "ExtractExperience");
 
-export const instructions = (type: ExperienceType) => `
+const instructions = () => `
   You are an AI assistant designed to extract structured professional experience from user input. The data will be used to build a resume and must follow these rules:
 
   Important:
-
-    The description must be rewritten as a professional, CV-style summary.
-    Include appropriate keywords for the role/industry.
-    Avoid generic phrases like “did things”; focus on achievements, responsibilities, and technologies.
-    Use the given value of type as the experience type (e.g., "work", "volunteering", etc.).
+  
+  The description must be rewritten as a professional, CV-style summary.
+  Include appropriate keywords for the role/industry.
+  Avoid generic phrases like “did things”; focus on achievements, responsibilities, and technologies.
+  Use the given value of type as the experience type (e.g., "work", "volunteering", etc.).
 
   Rules:
 
@@ -56,28 +55,28 @@ export const instructions = (type: ExperienceType) => `
   • If the input is irrelevant or unusable, set status = "REJECTED"
 
   Return ONLY a valid JSON matching this schema:
-  ${JSON.stringify(zodExperienceSchema.shape, null, 2)}
+  ${JSON.stringify(zodInterface.shape, null, 2)}
 `;
 
-export const updateInstructions = (
-  originalData: z.infer<typeof zodExperienceSchema>,
+const updateInstructions = (
+  originalData: z.infer<typeof zodInterface>,
   updatesRequested: string
 ) => `
-Update this experience data based on: ${updatesRequested}
+  Update this experience data based on: ${updatesRequested}
 
-Current Data:
-${JSON.stringify(originalData, null, 2)}
+  Current Data:
+  ${JSON.stringify(originalData, null, 2)}
 
-Rules:
-1. Only modify fields mentioned in the request
-2. Maintain original schema structure
-3. Update status if completeness changes
+  Rules:
+  1. Only modify fields mentioned in the request
+  2. Maintain original schema structure
+  3. Update status if completeness changes
 
-Return the updated JSON data.
+  Return the updated JSON data.
 `;
 
-export const ExperienceExtractor: Omit<PromptContext, "create"> = {
+export default {
   generate: instructions,
   update: updateInstructions,
   schema,
-};
+} as Partial<Features>;

@@ -3,9 +3,8 @@ import { Wizard } from "../../config/constants";
 import { BotContext } from "../../models/telegraf";
 import { ExperienceType, UserExperience } from "../../models";
 import { extract } from "../../config/openai";
-import { PromptContext, Service, ServicesMap } from "../../services";
+import { Features, Service, ServicesMap } from "../../services";
 import { getExperienceTemplate } from "../../lib/utils";
-import { addExperience } from "../../store/experiences";
 
 const experienceWizard = new Scenes.WizardScene<BotContext>(
   Wizard.EXPERIENCE,
@@ -27,7 +26,7 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       ])
     );
 
-    ctx.wizard.state.tempData = {
+    ctx.wizard.state.data = {
       type: null,
       experience: null,
     };
@@ -40,12 +39,12 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       await ctx.reply("Please try again and use the buttons provided.");
       return ctx.scene.leave();
     }
-    const action = ctx.callbackQuery.data;
+    const action_type = ctx.callbackQuery.data;
     await ctx.answerCbQuery();
-    ctx.wizard.state.tempData!.type = action as ExperienceType;
+    ctx.wizard.state.data.type = action_type as ExperienceType;
 
     await ctx.editMessageText(
-      `Write a short description of your ${action} experience. Ex:\n\n` +
+      `Write a short description of your ${action_type} experience. Ex:\n\n` +
         `“Worked as Frontend Dev at Google, 2022-2024. Focused on React + Typescript.”`,
       { parse_mode: "Markdown" }
     );
@@ -61,9 +60,7 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
 
     const input = ctx.message?.text;
 
-    const { schema, generate } = ServicesMap[
-      Service.EXPERIENCE_EXTRACTION
-    ] as PromptContext;
+    const { schema, generate } = ServicesMap[Service.EXPERIENCE] as Features;
 
     const { experience }: { experience: UserExperience } = await extract({
       input: input,
@@ -71,10 +68,11 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       schema,
     });
     console.log(experience);
-    ctx.wizard.state.tempData!.experience = experience;
+    ctx.wizard.state.data.experience = experience;
+    ctx.wizard.state.data.experience.type = ctx.wizard.state.data.type;
 
     const summary = getExperienceTemplate(
-      ctx.wizard.state.tempData!.type,
+      ctx.wizard.state.data!.type,
       experience
     );
     await ctx.reply(`${summary}\n\nConfirm to save?`, {
@@ -94,17 +92,20 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       return;
     }
     const action = ctx.callbackQuery.data;
-    const experience = ctx.wizard.state.tempData!.experience;
+    const experience: UserExperience = ctx.wizard.state.data!.experience;
+    const action_type = ctx.wizard.state.data.type;
 
     if (action === "save") {
-      await addExperience(ctx.session.profile.uid, experience);
-      console.log(experience);
+      await ctx.session.experience.add(experience);
       await ctx.editMessageText(
         "Experience saved! You can check your updates in your profile with /myprofile"
       );
     } else {
-      await ctx.editMessageText("Let's try again...");
-      ctx.wizard.selectStep(1);
+      await ctx.editMessageText(
+        `Let's try again, write a short description of your ${action_type} experience.`
+      );
+
+      ctx.wizard.selectStep(2);
       return;
     }
     return ctx.scene.leave();

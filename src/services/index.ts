@@ -1,37 +1,37 @@
-import { ProfileExtractor } from "./extract-profile";
-import { ExperienceExtractor } from "./extract-experience";
-import { PostGenerator } from "./generate-post";
-import { IdeasGenerator } from "./generate-ideas";
-import { ApplyJobExtractor } from "./extract-application";
-import { ReferralGenerator } from "./generate-referral";
-import { FollowUpExtractor } from "./extract-followup";
-// import welcomeMessage from "./system-welcome-message";
+import Profile from "./profile";
+import Experience from "./experience";
+import Post from "./post";
+import Ideas from "./ideas";
+import JobDescription from "./job-description";
+import Application from "./application";
+import Referral from "./referral";
+import FollowUp from "./follow-up";
 
 export enum Service {
-  PROFILE_EXTRACTION = "PROFILE_EXTRACTION",
-  EXPERIENCE_EXTRACTION = "EXPERIENCE_EXTRACTION",
-  LINKEDIN_POST_GENERATION = "LINKEDIN_POST_GENERATION",
-  WEEKLY_IDEAS_GENERATION = "WEEKLY_IDEAS_GENERATION",
-  APPLY_TO_JOB_EXTRACTION = "APPLY_TO_JOB_EXTRACTION",
-  REFERRAL_GENERATION = "REFERRAL_GENERATION",
-  FOLLOW_UP_EXTRACTION = "FOLLOW_UP_EXTRACTION",
-  // Add other services here as needed
+  PROFILE = "PROFILE",
+  EXPERIENCE = "EXPERIENCE",
+  LINKEDIN_POST = "LINKEDIN_POST",
+  WEEKLY_IDEAS = "WEEKLY_IDEAS",
+  JOB_DESCRIPTION = "JOB_DESCRIPTION",
+  APPLY_TO = "APPLY_TO",
+  REFERRAL = "REFERRAL",
+  FOLLOW_UP = "FOLLOW_UP",
 }
 
-export type PromptContext = {
+export type Features = {
   generate: (...props: any) => string;
   create: (...props: any) => string;
   update: (...data: any) => string;
   schema: any;
 };
 
-export const ServicesMap: Record<Service, Partial<PromptContext>> = {
-  [Service.PROFILE_EXTRACTION]: ProfileExtractor,
-  [Service.EXPERIENCE_EXTRACTION]: ExperienceExtractor,
-  [Service.LINKEDIN_POST_GENERATION]: PostGenerator,
-  [Service.WEEKLY_IDEAS_GENERATION]: IdeasGenerator,
-  [Service.APPLY_TO_JOB_EXTRACTION]: ApplyJobExtractor,
-  [Service.REFERRAL_GENERATION]: ReferralGenerator,
-  [Service.FOLLOW_UP_EXTRACTION]: FollowUpExtractor,
-  // ... map other prompts here
+export const ServicesMap: Record<Service, Partial<Features>> = {
+  [Service.PROFILE]: Profile,
+  [Service.EXPERIENCE]: Experience,
+  [Service.LINKEDIN_POST]: Post,
+  [Service.WEEKLY_IDEAS]: Ideas,
+  [Service.JOB_DESCRIPTION]: JobDescription,
+  [Service.APPLY_TO]: Application,
+  [Service.REFERRAL]: Referral,
+  [Service.FOLLOW_UP]: FollowUp,
 };

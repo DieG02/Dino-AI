@@ -42,6 +42,27 @@ export function mergeProfile(
   return merged;
 }
 
+export const messageEscape = (text: string): string => {
+  return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&");
+};
+
+type GroupKey = keyof UserExperience;
+
+export const groupBy = <T extends UserExperience>(
+  items: T[],
+  key: GroupKey
+): Record<string, T[]> => {
+  return items.reduce((acc, item) => {
+    const group = item[key] ?? "unknown";
+    const groupKey = typeof group === "string" ? group : String(group);
+
+    if (!acc[groupKey]) acc[groupKey] = [];
+    acc[groupKey].push(item);
+
+    return acc;
+  }, {} as Record<string, T[]>);
+};
+
 /**
  * Parses Telegram command text into {command, topic}
  * @example "/writepost new work" → {command: "writepost", topic: "new work"}

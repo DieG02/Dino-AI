@@ -1,9 +1,9 @@
 import { CronJob } from "cron";
 import { Reminder } from "../models";
 import { sendMessageToUser } from "../lib/utils";
-import { deleteReminders } from "../store/reminders";
+import { ReminderManager } from "../store/reminders";
 import { Timestamp } from "firebase-admin/firestore";
-import { REMINDERS_COLLECTION } from "./constants";
+import { Collection } from "./constants";
 import { db } from "../store";
 
 export const activeJobs = new Map<string, CronJob>();
@@ -29,7 +29,7 @@ export async function scheduleReminder(reminder: Reminder) {
     );
     console.log("Sending reminder to:", chatId);
     activeJobs.delete(id);
-    await deleteReminders(id);
+    await ReminderManager.delete(id);
   });
 
   job.start();
@@ -41,12 +41,12 @@ export async function restoreReminders() {
 
   // Delete outdated reminders
   const outdatedSnap = await db
-    .collection(REMINDERS_COLLECTION)
+    .collection(Collection.REMINDERS)
     .where("datetime", "<=", Timestamp.fromDate(now))
     .get();
 
   const deletePromises = outdatedSnap.docs.map((doc) =>
-    db.collection(REMINDERS_COLLECTION).doc(doc.id).delete()
+    db.collection(Collection.REMINDERS).doc(doc.id).delete()
   );
 
   await Promise.all(deletePromises);
@@ -54,7 +54,7 @@ export async function restoreReminders() {
 
   // Schedule future reminders
   const futureSnap = await db
-    .collection(REMINDERS_COLLECTION)
+    .collection(Collection.REMINDERS)
     .where("datetime", ">", Timestamp.fromDate(now))
     .get();
 

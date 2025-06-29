@@ -21,29 +21,26 @@ const stage = new Scenes.Stage<BotContext>([
   followupWizard,
 ]);
 
+function safeEnter(sceneId: string) {
+  return async (ctx: BotContext) => {
+    try {
+      await ctx.scene.enter(sceneId);
+    } catch (err) {
+      await ctx.reply(`❌ Couldn't start that flow. Please try again later.`);
+      throw new Error(`🔐 Failed to enter scene [${sceneId}]`);
+    }
+  };
+}
+
 export default function registerWizards(bot: Telegraf<BotContext>) {
   bot.use(stage.middleware());
-
-  bot.command("setprofile", (ctx) => ctx.scene.enter(Wizard.SET_PROFILE));
-
-  bot.command("experience", profileMiddleware, (ctx) =>
-    ctx.scene.enter(Wizard.EXPERIENCE)
-  );
-  bot.command("writepost", profileMiddleware, (ctx) =>
-    ctx.scene.enter(Wizard.WRITE_POST)
-  );
-  bot.command("weeklyideas", profileMiddleware, (ctx) =>
-    ctx.scene.enter(Wizard.WEEKLY_IDEAS)
-  );
-  bot.command("applyto", profileMiddleware, (ctx) =>
-    ctx.scene.enter(Wizard.APPLY_TO)
-  );
-  bot.command("referral", profileMiddleware, (ctx) =>
-    ctx.scene.enter(Wizard.REFERRAL)
-  );
-  bot.command("followup", profileMiddleware, (ctx) =>
-    ctx.scene.enter(Wizard.FOLLOW_UP)
-  );
+  bot.command("setprofile", safeEnter(Wizard.SET_PROFILE));
+  bot.command("experience", profileMiddleware, safeEnter(Wizard.EXPERIENCE));
+  bot.command("writepost", profileMiddleware, safeEnter(Wizard.WRITE_POST));
+  bot.command("weeklyideas", profileMiddleware, safeEnter(Wizard.WEEKLY_IDEAS));
+  bot.command("applyto", profileMiddleware, safeEnter(Wizard.APPLY_TO));
+  bot.command("referral", profileMiddleware, safeEnter(Wizard.REFERRAL));
+  bot.command("followup", profileMiddleware, safeEnter(Wizard.FOLLOW_UP));
 }
 
 export { stage };
