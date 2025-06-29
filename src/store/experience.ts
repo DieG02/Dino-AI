@@ -1,7 +1,7 @@
 import { Collection } from "../config/constants";
 import { UserExperience, ExperienceType } from "../models";
 import { Timestamp } from "@google-cloud/firestore";
-import { db } from "../store";
+import { db } from "./index";
 
 export class ExperienceManager {
   private readonly uid: string;

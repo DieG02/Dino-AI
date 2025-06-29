@@ -1,7 +1,7 @@
-import { Firestore, Timestamp } from "@google-cloud/firestore";
+import { Timestamp } from "@google-cloud/firestore";
 import { Collection } from "../config/constants";
-import { UserProfile } from "./index";
-import { db } from "../store";
+import { UserProfile } from "../models/index";
+import { db } from "./index";
 
 export class ProfileManager {
   private readonly uid: string;
