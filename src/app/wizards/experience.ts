@@ -39,12 +39,12 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       await ctx.reply("Please try again and use the buttons provided.");
       return ctx.scene.leave();
     }
-    const action = ctx.callbackQuery.data;
+    const action_type = ctx.callbackQuery.data;
     await ctx.answerCbQuery();
-    ctx.wizard.state.data!.type = action as ExperienceType;
+    ctx.wizard.state.data.type = action_type as ExperienceType;
 
     await ctx.editMessageText(
-      `Write a short description of your ${action} experience. Ex:\n\n` +
+      `Write a short description of your ${action_type} experience. Ex:\n\n` +
         `“Worked as Frontend Dev at Google, 2022-2024. Focused on React + Typescript.”`,
       { parse_mode: "Markdown" }
     );
@@ -93,16 +93,19 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
     }
     const action = ctx.callbackQuery.data;
     const experience: UserExperience = ctx.wizard.state.data!.experience;
+    const action_type = ctx.wizard.state.data.type;
 
     if (action === "save") {
       await ctx.session.experience.add(experience);
-      console.log(experience);
       await ctx.editMessageText(
         "Experience saved! You can check your updates in your profile with /myprofile"
       );
     } else {
-      await ctx.editMessageText("Let's try again...");
-      ctx.wizard.selectStep(1);
+      await ctx.editMessageText(
+        `Let's try again, write a short description of your ${action_type} experience.`
+      );
+
+      ctx.wizard.selectStep(2);
       return;
     }
     return ctx.scene.leave();
