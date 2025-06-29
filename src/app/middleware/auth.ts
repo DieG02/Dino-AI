@@ -13,7 +13,7 @@ export const authMiddleware: MiddlewareFn<BotContext> = async (
   if (!ctx.from?.id) throw new Error("No user context");
 
   try {
-    if (ctx.session.profile?.me && Object.keys(ctx.session.profile?.me)) {
+    if (ctx.session._init?.profile) {
       ctx.session.profile.refresh();
       return await next();
     }
@@ -28,25 +28,26 @@ export const authMiddleware: MiddlewareFn<BotContext> = async (
     } else {
       ctx.session.profile.create(ctx);
     }
+
+    ctx.session._init.profile = true;
+    return await next();
   } catch (error) {
-    console.error("Error loading or creating user profile:", error);
     await ctx.reply(
-      "There was an issue loading or creating your profile. Please try again or use /setprofile."
+      "There was an issue loading your profile. Please try /reset to fix it."
     );
-    return;
+    throw new Error("Session.Auth\n" + error);
   }
-  return await next();
 };
 
 export const profileMiddleware: MiddlewareFn<BotContext> = async (
   ctx: BotContext,
   next: () => Promise<void>
 ) => {
-  if (!Object.keys(ctx.session.profile?.me).length) {
+  if (!ctx.session.profile.me) {
     await ctx.reply(
-      "Please complete your profile using /setprofile before continuing."
+      "Please use /setprofile to complete your profile before continuing."
     );
-    return;
+    throw new Error("Session.Profile failed!");
   }
 
   return await next();

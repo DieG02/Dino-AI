@@ -9,7 +9,7 @@ export const experienceMiddleware: MiddlewareFn<BotContext> = async (
   if (!ctx.from?.id) throw new Error("Unauthorized");
 
   try {
-    if (ctx.session.experience.all) {
+    if (ctx.session._init?.experience) {
       ctx.session.experience.refresh();
       return await next();
     }
@@ -19,13 +19,13 @@ export const experienceMiddleware: MiddlewareFn<BotContext> = async (
 
     ctx.session.experience = manager;
     ctx.session.experience.refresh();
+    ctx.session._init.profile = true;
 
     return await next();
   } catch (error) {
-    console.error("Error loading your experience:", error);
     await ctx.reply(
       "There was an issue loading your profile experience. Please try again or use /experience."
     );
-    return;
+    throw new Error("Session.Experience\n" + error);
   }
 };

@@ -21,6 +21,11 @@ export interface BotSession extends Scenes.WizardSession<WizardSession> {
   profile: ProfileManager;
   experience: ExperienceManager;
   draft: Partial<Record<Wizard, any>>;
+
+  _init: {
+    profile: boolean;
+    experience: boolean;
+  };
 }
 
 export interface BotContext extends Context {

@@ -31,11 +31,11 @@ const instructions = () => `
   You are an AI assistant designed to extract structured professional experience from user input. The data will be used to build a resume and must follow these rules:
 
   Important:
-
-    The description must be rewritten as a professional, CV-style summary.
-    Include appropriate keywords for the role/industry.
-    Avoid generic phrases like “did things”; focus on achievements, responsibilities, and technologies.
-    Use the given value of type as the experience type (e.g., "work", "volunteering", etc.).
+  
+  The description must be rewritten as a professional, CV-style summary.
+  Include appropriate keywords for the role/industry.
+  Avoid generic phrases like “did things”; focus on achievements, responsibilities, and technologies.
+  Use the given value of type as the experience type (e.g., "work", "volunteering", etc.).
 
   Rules:
 

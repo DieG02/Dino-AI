@@ -8,6 +8,10 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
   bot.command("reset", async (ctx) => {
     // Clear the entire session for the current user
     ctx.session = {
+      _init: {
+        profile: true,
+        experience: true,
+      },
       profile: ctx.session.profile,
       experience: ctx.session.experience,
       draft: {},
@@ -18,7 +22,7 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
     }
 
     await ctx.reply(
-      "All active processes have been reset. You can start fresh now. Type /start or /help to see available commands."
+      "All active processes have been reset. You can start fresh now. Type /help to see available commands."
     );
   });
 
@@ -42,6 +46,7 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
 
   bot.command("myprofile", async (ctx) => {
     const profile = ctx.session.profile.me;
+    console.log("myprofile", profile);
     const name = profile.firstName ? profile.firstName : profile.username;
 
     // 1. Send Basic Info
@@ -61,15 +66,16 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
     );
 
     // 3. Group experiences by type and send
-    // const expByType = groupBy(experiences, "type");
+    const experiences = ctx.session.experience.all;
+    const expByType = groupBy(experiences, "type");
 
-    // for (const [type, exps] of Object.entries(expByType)) {
-    //   await ctx.reply(
-    //     `*Experience Roadmap: *\n\n` +
-    //       exps.map((exp) => formatExperience(exp)).join("\n\n"),
-    //     { parse_mode: "Markdown" }
-    //   );
-    // }
+    for (const [type, exps] of Object.entries(expByType)) {
+      await ctx.reply(
+        `*Experience Roadmap: *\n\n` +
+          exps.map((exp) => formatExperience(exp)).join("\n\n"),
+        { parse_mode: "Markdown" }
+      );
+    }
 
     // 4. Optional LinkedIn
     if (profile?.linkedinUrl) {
@@ -81,8 +87,6 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
 // Helper functions
 const formatExperience = (exp: UserExperience) => {
   const period = formatExperienceDate(exp.start as any, exp.end as any);
-  // const period = "Not format";
-  // console.log(exp.start, exp.end);
 
   return (
     `${getTypeIcon(exp.type)} *${exp.role}* at *${exp.company}*\n` +
@@ -97,12 +101,13 @@ const formatExperienceDate = (start: string, end: string | null): string => {
   const formatted = (dateStr: string | null) => {
     if (dateStr == null) return "Present";
     const [month, year] = dateStr.split("/");
-    const date = new Date(`01/${month}/${year}`);
+    const date = new Date(`${month}/01/${year}`);
     return date.toLocaleDateString("en-BR", {
       month: "short",
       year: "numeric",
     });
   };
+  if (!start) return ``;
 
   return `${formatted(start)} - ${formatted(end)}`;
 };

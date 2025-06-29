@@ -5,7 +5,7 @@ import { UserExperience } from "../../models";
 import { extract } from "../../config/openai";
 import { Features, Service, ServicesMap } from "../../services";
 
-interface JobApplicationState {
+export interface JobApplicationState {
   jobDescription: string;
   requirements: string[];
   matchedSkills: string[];
@@ -50,7 +50,7 @@ const applyToWizard = new Scenes.WizardScene<BotContext>(
     );
     const jd_summary = await extract({
       input: input,
-      system: generate_jd(profile),
+      system: generate_jd(),
       schema: schema_jd,
     });
 

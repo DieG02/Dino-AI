@@ -5,7 +5,6 @@ import { ExperienceType, UserExperience } from "../../models";
 import { extract } from "../../config/openai";
 import { Features, Service, ServicesMap } from "../../services";
 import { getExperienceTemplate } from "../../lib/utils";
-import { addExperience } from "../../store/experiences";
 
 const experienceWizard = new Scenes.WizardScene<BotContext>(
   Wizard.EXPERIENCE,
@@ -69,7 +68,8 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       schema,
     });
     console.log(experience);
-    ctx.wizard.state.data!.experience = experience;
+    ctx.wizard.state.data.experience = experience;
+    ctx.wizard.state.data.experience.type = ctx.wizard.state.data.type;
 
     const summary = getExperienceTemplate(
       ctx.wizard.state.data!.type,

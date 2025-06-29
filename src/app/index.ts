@@ -13,6 +13,10 @@ export function setupBotApp(bot: Telegraf<BotContext>) {
   bot.use(
     session({
       defaultSession: () => ({
+        _init: {
+          profile: false,
+          experience: false,
+        },
         profile: {} as ProfileManager,
         experience: {} as ExperienceManager,
         wizard: { state: {} },
@@ -22,6 +26,7 @@ export function setupBotApp(bot: Telegraf<BotContext>) {
   );
 
   // --- Middleware ---
+
   bot.use(authMiddleware);
   bot.use(experienceMiddleware);
 
