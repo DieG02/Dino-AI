@@ -1,15 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-const testEnvVars = [
-  "TELEGRAM_BOT_TOKEN",
-  "GOOGLE_SERVICES_BASE64",
-  "GOOGLE_SERVICES_BASE64_DEV",
-  "WEBHOOK_URL",
-  "OPENAI_API_KEY",
-  "MODE",
-  "PORT",
-];
+const testEnvVars = ["MODE", "PORT"];
 
 testEnvVars.forEach((varName) => {
   console.log(`${varName}:`, process.env[varName] ? "✅ Loaded" : "❌ Missing");
