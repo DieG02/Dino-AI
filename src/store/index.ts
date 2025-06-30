@@ -4,7 +4,7 @@ import * as admin from "firebase-admin";
 
 if (!admin.apps.length) {
   const serviceAccountJson = Buffer.from(
-    process.env.GOOGLE_SERVICES_BASE64_DEV!,
+    process.env.GOOGLE_SERVICES_BASE64!,
     "base64"
   ).toString("utf8");
 
