@@ -31,7 +31,7 @@ const formatProfile = (profile: Partial<UserProfile>) => {
     `*Role:* _${profile.role}_\n` +
     `*Industry:* _${profile.industry}_\n` +
     `*Tech Stack:*\n- ${techStack}\n\n` +
-    `Add more _fields_ later with /editprofile`
+    `Add more _fields_ later with /experience`
   );
 };
 
@@ -46,7 +46,7 @@ const setProfile = new Scenes.WizardScene<BotContext>(
   async (ctx) => {
     await replyMarkdown(
       ctx,
-      `🎯 *Describe your professional profile in 1–2 sentences:*\n\n` +
+      `🎯 *Describe your professional profile in 2–3 sentences:*\n\n` +
         `Example: "I'm a Backend Engineer (Go/Python) in fintech, looking for remote roles in Europe."\n\n` +
         `I'll extract details and ask if anything's missing.`
     );
@@ -65,11 +65,19 @@ const setProfile = new Scenes.WizardScene<BotContext>(
     // Retrieve the prompt string/function using the key
     const { generate, schema } = ServicesMap[Service.PROFILE] as Features;
 
+    const temp = await ctx.reply("Extracting your core information...");
     const extracted = await extract({
       input: inputText,
       system: generate(),
       schema,
     });
+
+    await ctx.telegram.editMessageText(
+      ctx.session.profile.me.uid,
+      temp.message_id,
+      undefined,
+      "Information extracted!"
+    );
 
     ctx.wizard.state.profile = mergeProfile(
       ctx.wizard.state.profile,
@@ -100,7 +108,6 @@ const setProfile = new Scenes.WizardScene<BotContext>(
       ctx.callbackQuery && "data" in ctx.callbackQuery
         ? ctx.callbackQuery.data
         : null;
-    const profile = ctx.session.profile.me;
 
     if (!action) {
       return await ctx.reply("Please use the buttons below 👇");
@@ -109,10 +116,16 @@ const setProfile = new Scenes.WizardScene<BotContext>(
     switch (action) {
       case "save_profile":
         await ctx.session.profile.update(ctx.wizard.state.profile);
-        await ctx.editMessageText("✅ Profile saved! Use /myprofile to view.");
+        await ctx.editMessageText("✅ Profile saved!");
+        await ctx.reply(
+          "Amazing! Now use /myprofile to review it or /experience to unlock more features."
+        );
         break;
       case "cancel_profile":
         await ctx.editMessageText("❌ Profile discarded");
+        await ctx.reply(
+          "Don't forget to update it before start to avoid issues."
+        );
         break;
     }
 

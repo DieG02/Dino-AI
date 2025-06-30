@@ -62,11 +62,21 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
 
     const { schema, generate } = ServicesMap[Service.EXPERIENCE] as Features;
 
+    const temp = await ctx.reply("Extracting job description...");
+
     const { experience }: { experience: UserExperience } = await extract({
       input: input,
       system: generate(),
       schema,
     });
+
+    await ctx.telegram.editMessageText(
+      ctx.session.profile.me.uid,
+      temp.message_id,
+      undefined,
+      "Job description extracted!"
+    );
+
     console.log(experience);
     ctx.wizard.state.data.experience = experience;
     ctx.wizard.state.data.experience.type = ctx.wizard.state.data.type;
@@ -78,8 +88,9 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
     await ctx.reply(`${summary}\n\nConfirm to save?`, {
       parse_mode: "Markdown",
       reply_markup: Markup.inlineKeyboard([
-        [Markup.button.callback("✅ Save", "save")],
+        [Markup.button.callback("❌ Cancel", "cancel")],
         [Markup.button.callback("🔄 Redo", "redo")],
+        [Markup.button.callback("✅ Save", "save")],
       ]).reply_markup,
     });
     return ctx.wizard.next();
@@ -100,13 +111,15 @@ const experienceWizard = new Scenes.WizardScene<BotContext>(
       await ctx.editMessageText(
         "Experience saved! You can check your updates in your profile with /myprofile"
       );
-    } else {
+    } else if (action === "redo") {
       await ctx.editMessageText(
         `Let's try again, write a short description of your ${action_type} experience.`
       );
 
       ctx.wizard.selectStep(2);
       return;
+    } else {
+      await ctx.reply("Adding new experience cancelled.");
     }
     return ctx.scene.leave();
   }

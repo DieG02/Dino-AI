@@ -17,8 +17,8 @@ export function setupBotApp(bot: Telegraf<BotContext>) {
           profile: false,
           experience: false,
         },
-        profile: {} as ProfileManager,
-        experience: {} as ExperienceManager,
+        profile: new ProfileManager(""),
+        experience: new ExperienceManager(""),
         wizard: { state: {} },
         draft: {},
       }),
@@ -31,10 +31,20 @@ export function setupBotApp(bot: Telegraf<BotContext>) {
   bot.use(experienceMiddleware);
 
   // --- Error Handling ---
+  // In setupBotApp.ts
   bot.catch(async (err: unknown, ctx: BotContext) => {
-    console.error(`Error for ${ctx.updateType}:`, err);
-    if (ctx.chat)
-      await ctx.reply("Oops, something went wrong! Try to use /restart.");
+    console.error(`[BotError] ${ctx.updateType}:`, err);
+
+    if (ctx.chat) {
+      await ctx.reply(
+        "⚠️ Operation failed. Use /restart to reset your session."
+      );
+      // Reset problematic session parts
+      if (ctx.session) {
+        ctx.session._init.profile = false;
+        ctx.session._init.experience = false;
+      }
+    }
   });
 
   // --- Handlers ---
