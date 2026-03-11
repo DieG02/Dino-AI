@@ -22,7 +22,7 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
     }
 
     await ctx.reply(
-      "All active processes have been restarted. You can start fresh now. Type /help to see available commands."
+      "All active processes have been restarted. You can start fresh now. Type /help to see available commands.",
     );
   });
 
@@ -41,7 +41,7 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
         `I'm your LinkedIn Assistant Bot — here to help you stay consistent, proactive and visible on LinkedIn.\n\n` +
         `💡 Start by using /setprofile to tell me more about you.\n\n` +
         `ℹ️ You can always type /help to see all available commands.`,
-      { parse_mode: "Markdown" }
+      { parse_mode: "Markdown" },
     );
   });
 
@@ -51,6 +51,7 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
         `🧑‍💼 *Profile & Setup*\n` +
         `  /setprofile – Configure your profile step-by-step\n` +
         `  /myprofile – View your saved profile\n` +
+        `  /experience – Add past roles with a short description\n` +
         `  /editprofile – _Update parts of your profile (coming soon)_\n` +
         `  /reset – _Clear your data and start over (coming soon)_\n\n` +
         `📝 *Job Hunt Tools*\n` +
@@ -60,11 +61,11 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
         `  /cv – _Generate a PDF based on your profile (coming soon)_\n\n` +
         `📢 *Content Strategy*\n` +
         `  /writepost – Create a LinkedIn post idea\n` +
-        `  /weeklypost – _Get weekly suggestions for posts (coming soon)_\n\n` +
+        `  /weeklyideas – _Get weekly suggestions for posts (coming soon)_\n\n` +
         `♻️ Use /restart clear all the processes in background.\n` +
         `ℹ️ Use /info to learn more about the bot.\n\n` +
         `Need more help? Just type the command and I’ll guide you through it step-by-step 🦖`,
-      { parse_mode: "Markdown" }
+      { parse_mode: "Markdown" },
     );
   });
 
@@ -83,7 +84,7 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
         `Start with /setprofile or type /help to explore all features!\n\n` +
         `Version: 1.0.0\n` +
         `Developer: [DieG02](https://bautista02.netlify.app/en)\n`,
-      { parse_mode: "Markdown" }
+      { parse_mode: "Markdown" },
     );
   });
 
@@ -97,14 +98,14 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
         `🪪 *Role:* ${profile.role}\n` +
         `🎯 *Main Goal:* ${profile.goal}\n` +
         `🌍 *Location:* ${profile.country || "Not set"}`,
-      { parse_mode: "Markdown" }
+      { parse_mode: "Markdown" },
     );
 
     // 2. Send Skills
     await ctx.reply(
       `*🛠 Tech Stack*\n${profile.techStack.join(" - ")}\n\n` +
         `*🗣 Languages*\n${profile.languages.join(" | ") || "Not specified"}`,
-      { parse_mode: "Markdown" }
+      { parse_mode: "Markdown" },
     );
 
     // 3. Group experiences by type and send
@@ -116,7 +117,7 @@ export default function registerCommands(bot: Telegraf<BotContext>) {
       await ctx.reply(
         `*${label(type)} experience Roadmap: *\n\n` +
           exps.map((exp) => formatExperience(exp)).join("\n\n"),
-        { parse_mode: "Markdown" }
+        { parse_mode: "Markdown" },
       );
     }
 
